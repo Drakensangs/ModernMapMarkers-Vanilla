@@ -8,5 +8,4 @@ Additionally, if you have Atlas and Atlas Quest installed, when you click the to
 <img src="https://github.com/user-attachments/assets/a0fa2e63-e0b5-485c-9e68-9057e68a4118" alt="dungeon" width="300" height="200"> <img src="https://github.com/user-attachments/assets/3d408b8b-d4f7-449c-a33f-cad9a3d41f4b" alt="dungeon" width="300" height="200"> <img src="https://github.com/user-attachments/assets/2e71077b-fc04-4d00-86fa-fbe1f107ab2f" alt="dungeon" width="300" height="200"> <img src="https://github.com/user-attachments/assets/75258999-cf95-4a59-ba26-5a928d0600b1" alt="dungeon" width="300" height="200">
 
 
-Authors: - tilr & Heallios
-         - updated for 1.12.1 Vanilla by Drakensangs
+Authors: - tilr & Heallios; updated for 1.12.1 Vanilla by Drakensangs
