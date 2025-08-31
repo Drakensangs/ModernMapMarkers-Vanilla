@@ -20,7 +20,7 @@ local points = {
 	{1, 1, 0.937, 0.355, "Emerald Dragon - Spawn Point 1 of 4", "worldboss", "60", nil},
 	{1, 9, 0.512, 0.108, "Emerald Dragon - Spawn Point 2 of 4", "worldboss", "60", nil},
     -- Kalimdor Transport
-    {1, 6, 0.512, 0.135, "Zeppelins to UC & Grom'Gol", "zepp", "Horde", nil},  -- horde
+    {1, 6, 0.512, 0.135, "Zeppelins to Tirisfal Glades & Grom'Gol", "zepp", "Horde", nil},  -- horde
     {1, 17, 0.636, 0.389, "Boat to Booty Bay", "boat", "Neutral", nil},  -- neutral
 	{1, 3, 0.333, 0.399, "Boat to Rut'Theran Village", "boat", "Alliance", nil}, -- alliance
 	{1, 3, 0.325, 0.436, "Boat to Menethil Harbor", "boat", "Alliance", nil}, -- alliance
@@ -39,7 +39,7 @@ local points = {
     {2, 21, 0.869, 0.323, "Scarlet Monastery - Armory", "dungeon", "32-42", 8}, 
     {2, 21, 0.862, 0.295, "Scarlet Monastery - Cathedral", "dungeon", "35-45", 9}, 
     {2, 21, 0.839, 0.283, "Scarlet Monastery - Graveyard", "dungeon", "26-36", 10},
-    {2, 21, 0.850, 0.338, "Scarlet Monastery - Library", "dungeon", "29-39", 11},  -- atlasID for Armory, Cath, GY and Lib are 13, 14, 15
+    {2, 21, 0.850, 0.338, "Scarlet Monastery - Library", "dungeon", "29-39", 11},  -- atlasID for Armory, Cath, GY and Lib are 8, 9, 10, 11
     {2, 23, 0.69, 0.74, "Scholomance", "dungeon", "58-60", 12},
     {2, 16, 0.44, 0.67, "Shadowfang Keep", "dungeon", "22-30", 13},
     {2, 17, 0.399, 0.544, "The Stockade", "dungeon", "24-31", 14},
@@ -67,8 +67,8 @@ local points = {
 	{2, 25, 0.051, 0.634, "Boat to Theramore Isle", "boat", "Alliance", nil},  -- alliance
 	{2, 25, 0.046, 0.572, "Boat to Auberdine", "boat", "Alliance", nil}, -- alliance
 	{2, 18, 0.257, 0.73, "Boat to Ratchet", "boat", "Neutral", nil}, -- neutral
-	{2, 21, 0.616, 0.571, "Zeppelins to Orgrimmar & Grom'Gol", "zepp", "Horde", nil}, -- horde
-	{2, 18, 0.312, 0.298, "Zeppelins to UC & Orgrimmar", "zepp", "Horde", nil}, -- Horde
+	{2, 21, 0.616, 0.571, "Zeppelins to Durotar & Grom'Gol", "zepp", "Horde", nil}, -- horde
+	{2, 18, 0.312, 0.298, "Zeppelins to Tirisfal Glades & Durotar", "zepp", "Horde", nil}, -- horde
 }
 
 -- keeping zoneIDs for reference and debugging only
@@ -85,6 +85,8 @@ local masterToggle
 local dungeonRaidsToggle
 local transportToggle
 local worldBossToggle
+local portalToggle
+local portalFactionToggle
 
 local function print(string) 
     DEFAULT_CHAT_FRAME:AddMessage(string) 
@@ -236,6 +238,18 @@ local function UpdateMarkers()
             shouldDisplay = ModernMapMarkersDB.showWorldBosses
         elseif kind == "boat" or kind == "zepp" or kind == "tram" then
             shouldDisplay = ModernMapMarkersDB.showTransport
+        elseif kind == "portal" then
+            shouldDisplay = ModernMapMarkersDB.showPortals
+            if shouldDisplay and ModernMapMarkersDB.hideOtherFactionPortals then
+                local playerFaction = UnitFactionGroup("player")
+                if info == "Alliance" and playerFaction == "Horde" then
+                    shouldDisplay = false
+                    if debug then print("Hiding Alliance portal due to faction filter: " .. label) end
+                elseif info == "Horde" and playerFaction == "Alliance" then
+                    shouldDisplay = false
+                    if debug then print("Hiding Horde portal due to faction filter: " .. label) end
+                end
+            end
         end
         
         if not shouldDisplay then
@@ -278,6 +292,9 @@ local function UpdateMarkers()
                 elseif kind == "tram" then
                     texture = "Interface\\Addons\\ModernMapMarkers\\Textures\\tram.tga"
                     size = 24
+                elseif kind == "portal" then
+                    texture = "Interface\\Addons\\ModernMapMarkers\\Textures\\portal.tga"
+					size = 24
                 else -- Dungeon
                     texture = "Interface\\Addons\\ModernMapMarkers\\Textures\\dungeon.tga"
                 end
@@ -332,12 +349,18 @@ local function UpdateCheckboxStates()
     if worldBossToggle then
         worldBossToggle:SetChecked(ModernMapMarkersDB.showWorldBosses)
     end
+    if portalToggle then
+        portalToggle:SetChecked(ModernMapMarkersDB.showPortals)
+    end
+    if portalFactionToggle then
+        portalFactionToggle:SetChecked(ModernMapMarkersDB.hideOtherFactionPortals)
+    end
 end
 
 local function CreateConfigUI()
     config = CreateFrame("Frame", "MMMConfigFrame", UIParent)
     config:SetWidth(320)
-    config:SetHeight(220)
+    config:SetHeight(240)
     config:SetPoint("CENTER", UIParent, "CENTER")
 	
 	tinsert(UISpecialFrames, "MMMConfigFrame")
@@ -408,6 +431,8 @@ local function CreateConfigUI()
     dungeonRaidsToggle = CreateToggleCheckbox(config, 20, -75, "Show Dungeons & Raids", "showDungeonRaids")
     transportToggle = CreateToggleCheckbox(config, 20, -100, "Show Transport (Boats, Zeppelins, Trams)", "showTransport")
     worldBossToggle = CreateToggleCheckbox(config, 20, -125, "Show World Bosses", "showWorldBosses")
+    portalToggle = CreateToggleCheckbox(config, 20, -150, "Show Portals", "showPortals")
+    portalFactionToggle = CreateToggleCheckbox(config, 20, -175, "Hide Opposing Faction Portals", "hideOtherFactionPortals")
 
     local closeButton = CreateFrame("Button", nil, config, "UIPanelButtonTemplate")
     closeButton:SetWidth(80)
@@ -429,7 +454,9 @@ local function InitializeSavedVariables()
             showMarkers = true,
             showDungeonRaids = true,
             showTransport = true,
-            showWorldBosses = true
+            showWorldBosses = true,
+			showPortals = true,
+            hideOtherFactionPortals = true
         }
         if debug then
             print("Modern Map Markers: Created new saved variables with defaults")
@@ -448,6 +475,12 @@ local function InitializeSavedVariables()
         if ModernMapMarkersDB.showWorldBosses == nil then
             ModernMapMarkersDB.showWorldBosses = true
         end
+        if ModernMapMarkersDB.showPortals == nil then
+            ModernMapMarkersDB.showPortals = true
+        end
+        if ModernMapMarkersDB.hideOtherFactionPortals == nil then
+            ModernMapMarkersDB.hideOtherFactionPortals = true
+        end
     end
     
     if debug then
@@ -456,6 +489,8 @@ local function InitializeSavedVariables()
         print("  showDungeonRaids: " .. tostring(ModernMapMarkersDB.showDungeonRaids))
         print("  showTransport: " .. tostring(ModernMapMarkersDB.showTransport))
         print("  showWorldBosses: " .. tostring(ModernMapMarkersDB.showWorldBosses))
+        print("  showPortals: " .. tostring(ModernMapMarkersDB.showPortals))
+        print("  hideOtherFactionPortals: " .. tostring(ModernMapMarkersDB.hideOtherFactionPortals))
     end
 end
 
