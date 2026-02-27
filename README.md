@@ -26,13 +26,14 @@ Original addon: tilr & Heallios;
 
 Vanilla 1.12.1 version: Drakensangs
 
+## 🎥 **Video Demonstration:**
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/sPUqtEJxmPo/0.jpg)](https://www.youtube.com/watch?v=sPUqtEJxmPo)
+
 ## 📸 **Screenshots**
 
 <img width="592" height="305" alt="Untitled" src="https://github.com/user-attachments/assets/815a90a6-9940-4fd3-9b73-fa655ae3e9ec" />
 <img width="659" height="492" alt="Untitled4" src="https://github.com/user-attachments/assets/4937930a-a429-4bda-8558-76dfde689289" />
 <img width="759" height="352" alt="Untitled3" src="https://github.com/user-attachments/assets/24d89e0e-af29-4095-a862-28b344ff253b" />
+<img width="830" height="720" alt="Untitled2" src="https://github.com/user-attachments/assets/ab8f2b6e-8081-44af-bc34-7ac1cad67a38" />
 <img width="1714" height="956" alt="Untitled4" src="https://github.com/user-attachments/assets/b9588573-75e4-46dc-a7d1-bd3c6143ea98" />
-
-## 🎥 **Video Demonstration:**
-
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/sPUqtEJxmPo/0.jpg)](https://www.youtube.com/watch?v=sPUqtEJxmPo)
