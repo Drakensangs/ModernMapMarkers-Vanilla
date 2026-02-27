@@ -1,393 +1,238 @@
--- Marker data: { continent, zoneID, x, y, name, type, info, Atlas ID }
-local defaultPoints = {
-    -- Kalimdor Dungeons
-    {1, 1, 0.123, 0.128, "Blackfathom Deeps", "dungeon", "24-32", 1},
-    {1, 9, 0.648, 0.303, "Dire Maul - East", "dungeon", "55-58", 2},
-    {1, 9, 0.771, 0.369, "Dire Maul - East\n|cFF808080(The Hidden Reach)|r", "dungeon", "55-58", 2},
-    {1, 9, 0.671, 0.34, "Dire Maul - East\n|cFF808080(Side Entrance)|r", "dungeon", "55-58", 2},
-    {1, 9, 0.624, 0.249, "Dire Maul - North", "dungeon", "57-60", 3},
-    {1, 9, 0.604, 0.311, "Dire Maul - West", "dungeon", "57-60", 4},
-    {1, 5, 0.29, 0.629, "Maraudon", "dungeon", "46-55", 5},
-    {1, 12, 0.53, 0.486, "Ragefire Chasm", "dungeon", "13-18", 7},
-    {1, 17, 0.508, 0.94, "Razorfen Downs", "dungeon", "37-46", 8},
-    {1, 17, 0.423, 0.9, "Razorfen Kraul", "dungeon", "29-38", 9},
-    {1, 17, 0.462, 0.357, "Wailing Caverns", "dungeon", "17-24", 12},
-    {1, 15, 0.387, 0.2, "Zul'Farrak", "dungeon", "44-54", 13},
-    -- Kalimdor Raids
-    {1, 7, 0.529, 0.777, "Onyxia's Lair", "raid", "60", 6},
-    {1, 13, 0.305, 0.987, "Ruins of Ahn'Qiraj", "raid", "60", 10},
-    {1, 13, 0.269, 0.987, "Temple of Ahn'Qiraj", "raid", "60", 11},
-    -- Kalimdor World Bosses
-    {1, 2, 0.535, 0.816, "Azuregos", "worldboss", "60", nil},
-    {1, 1, 0.937, 0.355, "Emerald Dragon - Spawn Point 1 of 4", "worldboss", "60", nil},
-    {1, 9, 0.512, 0.108, "Emerald Dragon - Spawn Point 2 of 4", "worldboss", "60", nil},
-    -- Kalimdor Transport
-    {1, 6, 0.512, 0.135, "Zeppelins to Tirisfal Glades & Grom'Gol", "zepp", "Horde", nil},
-    {1, 17, 0.636, 0.389, "Boat to Booty Bay", "boat", "Neutral", nil},
-    {1, 3, 0.333, 0.399, "Boat to Rut'Theran Village", "boat", "Alliance", nil},
-    {1, 3, 0.325, 0.436, "Boat to Menethil Harbor", "boat", "Alliance", nil},
-    {1, 7, 0.718, 0.566, "Boat to Menethil Harbor", "boat", "Alliance", nil},
-    {1, 9, 0.311, 0.395, "Boat to Forgotten Coast", "boat", "Alliance", nil},
-    {1, 9, 0.431, 0.428, "Boat to Sardor Isle", "boat", "Alliance", nil},
-    {1, 16, 0.552, 0.949, "Boat to Auberdine", "boat", "Alliance", nil},
-    -- Eastern Kingdoms Dungeons
-    {2, 15, 0.387, 0.833, "Blackrock Depths", "dungeon", "52-60", 1},
-    {2, 5, 0.328, 0.365, "Blackrock Depths", "dungeon", "52-60", 1},
-    {2, 24, 0.423, 0.726, "The Deadmines", "dungeon", "17-24", 3},
-    {2, 7, 0.178, 0.392, "Gnomeregan", "dungeon", "29-38", 4},
-    {2, 7, 0.216, 0.3, "Gnomeregan\n|cFF808080(Workshop Entrance)|r", "dungeon", "29-38", 4},
-    {2, 5, 0.32, 0.39, "Lower Blackrock Spire", "dungeon", "55-60", 5},
-    {2, 15, 0.379, 0.858, "Lower Blackrock Spire", "dungeon", "55-60", 5},
-    {2, 21, 0.87, 0.325, "Scarlet Monastery - Armory", "dungeon", "32-42", 8},
-    {2, 21, 0.862, 0.295, "Scarlet Monastery - Cathedral", "dungeon", "35-45", 9},
-    {2, 21, 0.839, 0.283, "Scarlet Monastery - Graveyard", "dungeon", "26-36", 10},
-    {2, 21, 0.85, 0.335, "Scarlet Monastery - Library", "dungeon", "29-39", 11},
-    {2, 23, 0.69, 0.729, "Scholomance", "dungeon", "58-60", 12},
-    {2, 16, 0.448, 0.678, "Shadowfang Keep", "dungeon", "22-30", 13},
-    {2, 17, 0.399, 0.544, "The Stockade", "dungeon", "24-31", 14},
-    {2, 9, 0.31, 0.14, "Stratholme", "dungeon", "58-60", 15},
-    {2, 9, 0.482, 0.219, "Stratholme\n|cFF808080(Back Gate)|r", "dungeon", "58-60", 15},
-    {2, 19, 0.703, 0.55, "The Sunken Temple", "dungeon", "50-60", 16},
-    {2, 3, 0.429, 0.13, "Uldaman", "dungeon", "41-51", 17},
-    {2, 3, 0.657, 0.438, "Uldaman\n|cFF808080(Back Entrance)|r", "dungeon", "41-51", 17},
-    {2, 5, 0.312, 0.365, "Upper Blackrock Spire", "dungeon", "55-60", 18},
-    {2, 15, 0.371, 0.833, "Upper Blackrock Spire", "dungeon", "55-60", 18},
-    -- Eastern Kingdoms Raids
-    {2, 15, 0.332, 0.833, "Blackwing Lair", "raid", "60", 2},
-    {2, 5, 0.273, 0.363, "Blackwing Lair", "raid", "60", 2},
-    {2, 15, 0.332, 0.86, "Molten Core", "raid", "60", 6},
-    {2, 5, 0.273, 0.39, "Molten Core", "raid", "60", 6},
-    {2, 9, 0.399, 0.259, "Naxxramas", "raid", "60", 7},
-    {2, 18, 0.53, 0.172, "Zul'Gurub", "raid", "60", 19},
-    -- Eastern Kingdoms World Bosses
-    {2, 8, 0.465, 0.357, "Emerald Dragon - Spawn Point 3 of 4", "worldboss", "60", nil},
-    {2, 20, 0.632, 0.217, "Emerald Dragon - Spawn Point 4 of 4", "worldboss", "60", nil},
-    {2, 4, 0.36, 0.753, "Lord Kazzak", "worldboss", "60", 7},
-    -- Eastern Kingdoms Transport
-    {2, 17, 0.627, 0.097, "Tram to Ironforge", "tram", "Alliance", nil},
-    {2, 12, 0.762, 0.511, "Tram to Stormwind", "tram", "Alliance", nil},
-    {2, 25, 0.051, 0.634, "Boat to Theramore Isle", "boat", "Alliance", nil},
-    {2, 25, 0.046, 0.572, "Boat to Auberdine", "boat", "Alliance", nil},
-    {2, 18, 0.257, 0.73, "Boat to Ratchet", "boat", "Neutral", nil},
-    {2, 21, 0.616, 0.571, "Zeppelins to Durotar & Grom'Gol", "zepp", "Horde", nil},
-    {2, 18, 0.312, 0.298, "Zeppelins to Tirisfal Glades & Durotar", "zepp", "Horde", nil},
-}
+-- ModernMapMarkers.lua
+-- Core logic: point index, marker pool, rendering, event handling.
+-- UI (dropdowns, labels) is in ModernMapMarkers_UI.lua.
+-- Marker data is defined in MarkerData.lua as MMM_MarkerData.
 
--- After initialization, clear defaultPoints to free memory (data is now in pointsByMap)
-local function FreeDefaultPoints()
-    defaultPoints = nil
-end
-
+-- ============================================================
 -- Constants
-local HOVER_SIZE_MULTIPLIER = 1.15
-local HOVER_ALPHA = 0.5
-local MARKER_SIZE_LARGE = 32
-local MARKER_SIZE_SMALL = 24
-local UPDATE_THROTTLE = 0.1
-local MAX_POOL_SIZE = 50
-local INVALID_ZONE = 0
+-- ============================================================
 
--- Pre-calculated multiplier for map key generation
-local CONTINENT_MULTIPLIER = 100
+local HOVER_SIZE_MULTIPLIER   = 1.15
+local HOVER_ALPHA             = 0.5
+local FIND_SIZE_MULTIPLIER    = 1.4
+local FIND_HIGHLIGHT_ALPHA    = 0.9
+local FIND_HIGHLIGHT_DURATION = 3.5
+local SOUND_CLICK             = "Sound\\Interface\\uCharacterSheetOpen.wav"
+local MARKER_SIZE_LARGE       = 32
+local MARKER_SIZE_SMALL       = 24
+local UPDATE_THROTTLE         = 0.1
+local MAX_POOL_SIZE           = 50
+local CONTINENT_MULTIPLIER    = 100
 
--- Texture paths (pre-built strings)
 local TEXTURES = {
-    dungeon = "Interface\\Addons\\ModernMapMarkers\\Textures\\dungeon.tga",
-    raid = "Interface\\Addons\\ModernMapMarkers\\Textures\\raid.tga",
+    dungeon   = "Interface\\Addons\\ModernMapMarkers\\Textures\\dungeon.tga",
+    raid      = "Interface\\Addons\\ModernMapMarkers\\Textures\\raid.tga",
     worldboss = "Interface\\Addons\\ModernMapMarkers\\Textures\\worldboss.tga",
-    zepp = "Interface\\Addons\\ModernMapMarkers\\Textures\\zepp.tga",
-    boat = "Interface\\Addons\\ModernMapMarkers\\Textures\\boat.tga",
-    tram = "Interface\\Addons\\ModernMapMarkers\\Textures\\tram.tga",
-    portal = "Interface\\Addons\\ModernMapMarkers\\Textures\\portal.tga",
+    zepp      = "Interface\\Addons\\ModernMapMarkers\\Textures\\zepp.tga",
+    boat      = "Interface\\Addons\\ModernMapMarkers\\Textures\\boat.tga",
+    tram      = "Interface\\Addons\\ModernMapMarkers\\Textures\\tram.tga",
+    portal    = "Interface\\Addons\\ModernMapMarkers\\Textures\\portal.tga",
 }
 
--- Tooltip faction colors
-local FACTION_COLORS = {
-    Alliance = {0.15, 0.59, 0.75},
-    Horde = {0.89, 0.16, 0.10},
-    Neutral = {1, 1, 0}
-}
-
--- World boss data (constant tables)
 local WORLD_BOSS_MAP = {
-    ["Azuregos"] = "AAzuregos",
+    ["Azuregos"]    = "AAzuregos",
     ["Lord Kazzak"] = "KKazzak",
 }
 
 local ATLAS_OUTDOOR_INDEX = {
-    ["Azuregos"] = 1,
+    ["Azuregos"]                            = 1,
     ["Emerald Dragon - Spawn Point 1 of 4"] = 2,
     ["Emerald Dragon - Spawn Point 2 of 4"] = 2,
     ["Emerald Dragon - Spawn Point 3 of 4"] = 2,
     ["Emerald Dragon - Spawn Point 4 of 4"] = 2,
-    ["Lord Kazzak"] = 3,
+    ["Lord Kazzak"]                         = 3,
 }
 
+-- [1]=atlasID, [2]=displayName
 local NIGHTMARE_DRAGONS = {
-    {id = "DLethon", name = "Lethon"},
-    {id = "DEmeriss", name = "Emeriss"},
-    {id = "DTaerar", name = "Taerar"},
-    {id = "DYsondre", name = "Ysondre"},
+    {"DLethon",  "Lethon"},
+    {"DEmeriss", "Emeriss"},
+    {"DTaerar",  "Taerar"},
+    {"DYsondre", "Ysondre"},
 }
 
--- Config UI backdrop (constant)
-local CONFIG_BACKDROP = {
-    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-    edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-    tile = true,
-    tileSize = 32,
-    edgeSize = 32,
-    insets = {left = 11, right = 11, top = 11, bottom = 11}
-}
-
--- Atlas continent mapping
+-- Maps continent index to Atlas type index (Kalimdor=1->Atlas 2, EK=2->Atlas 1)
 local ATLAS_CONTINENT_MAP = {2, 1}
 
--- Cache frequently used functions
-local pairs = pairs
-local unpack = unpack
-local GetTime = GetTime
-local UnitFactionGroup = UnitFactionGroup
-local tinsert = tinsert
-local tremove = tremove
-local getn = getn
+-- ============================================================
+-- Cached globals
+-- ============================================================
+
+local pairs       = pairs
+local GetTime     = GetTime
+local tinsert     = tinsert
+local getn        = getn
 local math_random = math.random
-local string_find = string.find
-local pcall = pcall
+local math_sin    = math.sin
+local strfind     = string.find
+local pcall       = pcall
 
--- Indexed point lookup by continent and zone
-local pointsByMap = {}
+-- ============================================================
+-- State
+-- ============================================================
 
--- State tracking
-local markerPool = {}
-local activeMarkers = {}
+local pointsByMap        = {}
+local markerPool         = {}
+local markerPoolCount    = 0
+local activeMarkers      = {}
 local activeMarkersCount = 0
-local initialized = false
-local firstLoad = true
-local lastContinent = 0
-local lastZone = 0
-local lastUpdateTime = 0
-local playerFaction
+local initialized        = false
+local lastContinent      = 0
+local lastZone           = 0
+local lastUpdateTime     = 0
 local worldMapFrameLevel
+local frame              = CreateFrame("Frame")
+local updateEnabled      = false
+local flatDataCache
+local pendingOriginC     -- transport click: origin continent for dest highlight
+local pendingOriginZ     -- transport click: origin zone for dest highlight
 
--- UI Elements
-local config
-local masterToggle
-local dungeonRaidsToggle
-local transportToggle
-local transportFactionToggle
-local worldBossToggle
-local portalToggle
-local portalFactionToggle
-local markerLabel
+-- ============================================================
+-- Global namespace (shared with ModernMapMarkers_UI.lua)
+-- ============================================================
 
--- Event frame
-local frame = CreateFrame("Frame")
-local updateEnabled = false
+MMM = MMM or {}
 
--- Build indexed lookup table
+function MMM.ForceRedraw()
+    lastContinent = 0
+    lastZone      = 0
+end
+
+function MMM.SetUpdateEnabled(state)
+    if state and not updateEnabled then
+        frame:RegisterEvent("WORLD_MAP_UPDATE")
+        updateEnabled = true
+    elseif not state and updateEnabled then
+        frame:UnregisterEvent("WORLD_MAP_UPDATE")
+        updateEnabled = false
+    end
+end
+
+-- ============================================================
+-- Point index
+-- ============================================================
+
 local function BuildPointIndex()
-    local pointCount = getn(defaultPoints)
-    for i = 1, pointCount do
-        local data = defaultPoints[i]
-        local key = data[1] * CONTINENT_MULTIPLIER + data[2]
-        
-        local bucket = pointsByMap[key]
-        if not bucket then
-            bucket = {}
-            pointsByMap[key] = bucket
+    for continentID, points in pairs(MMM_MarkerData) do
+        local pointCount = getn(points)
+        for i = 1, pointCount do
+            local p      = points[i]
+            local zoneID = p[1]
+            local key    = continentID * CONTINENT_MULTIPLIER + zoneID
+            local bucket = pointsByMap[key]
+            if not bucket then
+                bucket = {}
+                pointsByMap[key] = bucket
+            end
+            -- Internal format: { x, y, name, type, info, atlasID, dest }
+            tinsert(bucket, {p[2], p[3], p[4], p[5], p[6], p[7], p[8]})
         end
-        
-        tinsert(bucket, data)
     end
 end
 
--- Create custom marker label (Blizzard-style)
-local function CreateMarkerLabel()
-    -- Create on WorldMapDetailFrame instead of WorldMapButton
-    markerLabel = CreateFrame("Frame", "MMMMarkerLabelFrame", WorldMapDetailFrame)
-    markerLabel:SetFrameStrata("TOOLTIP")
-    markerLabel:SetFrameLevel(WorldMapDetailFrame:GetFrameLevel() + 10)
-    markerLabel:SetWidth(400)
-    markerLabel:SetHeight(60)
-    
-    -- Position it exactly where WorldMapFrameAreaLabel is
-    if WorldMapFrameAreaLabel then
-        markerLabel:SetPoint("TOP", WorldMapFrameAreaLabel, "TOP", 0, 0)
-    else
-        markerLabel:SetPoint("TOP", WorldMapDetailFrame, "TOP", 0, -10)
-    end
-    
-    -- Main text - use the exact same font object as WorldMapFrameAreaLabel
-    markerLabel.name = markerLabel:CreateFontString(nil, "OVERLAY")
-    markerLabel.name:SetPoint("TOP", markerLabel, "TOP", 0, 0)
-    markerLabel.name:SetJustifyH("CENTER")
-    
-    -- Copy the font settings from WorldMapFrameAreaLabel
-    if WorldMapFrameAreaLabel then
-        local fontName, fontSize, fontFlags = WorldMapFrameAreaLabel:GetFont()
-        markerLabel.name:SetFont(fontName, fontSize, fontFlags)
-        -- Copy the shadow settings
-        local r, g, b, a = WorldMapFrameAreaLabel:GetShadowColor()
-        local x, y = WorldMapFrameAreaLabel:GetShadowOffset()
-        markerLabel.name:SetShadowColor(r, g, b, a)
-        markerLabel.name:SetShadowOffset(x, y)
-        -- Copy the exact text color
-        local tr, tg, tb, ta = WorldMapFrameAreaLabel:GetTextColor()
-        markerLabel.name:SetTextColor(tr, tg, tb, ta)
-    else
-        -- Fallback if we can't read the label
-        markerLabel.name:SetFont("Fonts\\FRIZQT__.TTF", 18, "OUTLINE, THICKOUTLINE")
-        markerLabel.name:SetShadowColor(0, 0, 0, 1)
-        markerLabel.name:SetShadowOffset(1, -1)
-        markerLabel.name:SetTextColor(1, 0.82, 0) -- Blizzard's standard UI yellow
-    end
-    
-    -- Info text with same outline style
-    markerLabel.info = markerLabel:CreateFontString(nil, "OVERLAY")
-    markerLabel.info:SetPoint("TOP", markerLabel.name, "BOTTOM", 0, -2)
-    markerLabel.info:SetJustifyH("CENTER")
-    markerLabel.info:SetFont("Fonts\\FRIZQT__.TTF", 13, "OUTLINE")
-    markerLabel.info:SetShadowColor(0, 0, 0, 1)
-    markerLabel.info:SetShadowOffset(1, -1)
-    
-    markerLabel:Hide()
-end
-
--- Show marker info
-local function ShowMarkerInfo(name, info)
-    if not markerLabel then
-        CreateMarkerLabel()
-    end
-    
-    -- Hide Blizzard's default area label
-    if WorldMapFrameAreaLabel then
-        WorldMapFrameAreaLabel:Hide()
-    end
-    
-    -- Set the marker name (white like normal Blizzard UI)
-    markerLabel.name:SetText(name)
-    
-    -- Set the info text with appropriate color
-    if info and info ~= "" then
-        local color = FACTION_COLORS[info]
-        if color then
-            -- Faction colored text
-            markerLabel.info:SetTextColor(color[1], color[2], color[3])
-            markerLabel.info:SetText("(" .. info .. ")")
-        else
-            -- Level info in yellow
-            markerLabel.info:SetTextColor(1, 0.82, 0)
-            markerLabel.info:SetText("(Level " .. info .. ")")
+-- Returns a flat list of { continent, zone, name, type, description, atlasID }
+-- for the Find Marker dropdown. Transport types are excluded.
+-- Built once on first call and cached for the lifetime of the session.
+function MMM.GetFlatData()
+    if flatDataCache then return flatDataCache end
+    local result = {}
+    local skip = {boat=true, zepp=true, tram=true, portal=true}
+    for continentID, points in pairs(MMM_MarkerData) do
+        local pointCount = getn(points)
+        for i = 1, pointCount do
+            local p = points[i]
+            if not skip[p[5]] then
+                tinsert(result, {
+                    continent   = continentID,
+                    zone        = p[1],
+                    name        = p[4],
+                    type        = p[5],
+                    description = p[6],
+                    atlasID     = p[7],
+                })
+            end
         end
-        markerLabel.info:Show()
-    else
-        markerLabel.info:Hide()
     end
-    
-    markerLabel:Show()
+    flatDataCache = result
+    return result
 end
 
--- Hide marker info
-local function HideMarkerInfo()
-    if markerLabel then
-        markerLabel:Hide()
-    end
-    
-    -- Restore Blizzard's default area label
-    if WorldMapFrameAreaLabel then
-        WorldMapFrameAreaLabel:Show()
-    end
-end
+-- ============================================================
+-- Marker pool
+-- ============================================================
 
--- Get or create a marker from pool
 local function GetMarkerFromPool()
-    local marker = tremove(markerPool)
-    if marker then
+    if markerPoolCount > 0 then
+        local marker = markerPool[markerPoolCount]
+        markerPool[markerPoolCount] = nil
+        markerPoolCount = markerPoolCount - 1
         return marker
     end
-    
-    -- Create new marker
-    marker = CreateFrame("Button", nil, WorldMapDetailFrame)
-    marker.texture = marker:CreateTexture(nil, "OVERLAY")
+    local marker = CreateFrame("Button", nil, WorldMapDetailFrame)
+    marker.texture   = marker:CreateTexture(nil, "OVERLAY")
     marker.highlight = marker:CreateTexture(nil, "HIGHLIGHT")
     marker.highlight:SetBlendMode("ADD")
     return marker
 end
 
--- Return marker to pool
 local function ReturnMarkerToPool(marker)
     marker:Hide()
     marker:ClearAllPoints()
     marker:SetScript("OnEnter", nil)
     marker:SetScript("OnLeave", nil)
     marker:SetScript("OnClick", nil)
-    
-    -- Clear marker data
-    marker.markerName = nil
-    marker.markerInfo = nil
-    marker.markerKind = nil
-    marker.atlasID = nil
+    marker:SetScript("OnUpdate", nil)
+    marker.findTimer       = nil
+    marker.markerName      = nil
+    marker.markerInfo      = nil
+    marker.markerHint      = nil
+    marker.markerKind      = nil
+    marker.atlasID         = nil
+    marker.transportDest   = nil
+    marker.isDualDest      = nil
     marker.isEmeraldDragon = nil
-    marker.originalSize = nil
-    
-    -- Cap pool size to prevent unbounded growth
-    local poolSize = getn(markerPool)
-    if poolSize < MAX_POOL_SIZE then
-        tinsert(markerPool, marker)
+    marker.originalSize    = nil
+    if markerPoolCount < MAX_POOL_SIZE then
+        markerPoolCount = markerPoolCount + 1
+        markerPool[markerPoolCount] = marker
     else
         marker:SetParent(nil)
     end
 end
 
--- Random Nightmare Dragon selector
+-- ============================================================
+-- Click handlers
+-- ============================================================
+
 local function GetRandomNightmareDragon()
-    local idx = math_random(1, getn(NIGHTMARE_DRAGONS))
-    return NIGHTMARE_DRAGONS[idx].id, NIGHTMARE_DRAGONS[idx].name
+    local d = NIGHTMARE_DRAGONS[math_random(1, 4)]
+    return d[1], d[2]
 end
 
--- Check if world map is in fullscreen mode
 local function IsWorldMapFullscreen()
-    -- In vanilla, the fullscreen map has the BlackoutWorld frame visible
-    -- Windowed maps (ShaguTweaks, etc.) hide this frame
-    if BlackoutWorld and BlackoutWorld:IsVisible() then
-        return true
-    end
-    
-    -- Fallback: check if map takes up most of the screen
-    local mapWidth = WorldMapFrame:GetWidth()
-    local mapHeight = WorldMapFrame:GetHeight()
-    local screenWidth = GetScreenWidth()
-    local screenHeight = GetScreenHeight()
-    
-    -- Consider it fullscreen if it takes up more than 90% of screen space
-    return (mapWidth / screenWidth > 0.9 and mapHeight / screenHeight > 0.9)
+    if BlackoutWorld and BlackoutWorld:IsVisible() then return true end
+    return (WorldMapFrame:GetWidth()  / GetScreenWidth()  > 0.9 and
+            WorldMapFrame:GetHeight() / GetScreenHeight() > 0.9)
 end
 
--- World boss click handler
 local function OnWorldBossClick()
     if not AtlasLoot_ShowBossLoot or not AtlasFrame or not Atlas_Refresh then
         DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000AtlasLoot not loaded.|r")
         return
     end
-    
-    local bossName = this.markerName
-    local dataID = WORLD_BOSS_MAP[bossName]
-    local atlasIndex = ATLAS_OUTDOOR_INDEX[bossName]
+    local bossName    = this.markerName
+    local dataID      = WORLD_BOSS_MAP[bossName]
+    local atlasIndex  = ATLAS_OUTDOOR_INDEX[bossName]
     local displayName = bossName
-    
-    -- Handle Emerald Dragons (pre-flagged, no string search needed)
     if this.isEmeraldDragon then
         dataID, displayName = GetRandomNightmareDragon()
         atlasIndex = 2
     end
-    
     if dataID and atlasIndex then
-        -- Hide world map only if it's in fullscreen mode
+        PlaySoundFile(SOUND_CLICK)
         if WorldMapFrame:IsVisible() and IsWorldMapFullscreen() then
             HideUIPanel(WorldMapFrame)
         end
-        
         if AtlasFrame and AtlasOptions then
             AtlasOptions.AtlasType = 3
             AtlasOptions.AtlasZone = atlasIndex
@@ -395,51 +240,110 @@ local function OnWorldBossClick()
             AtlasFrame:SetFrameStrata("FULLSCREEN")
             AtlasFrame:Show()
         end
-        
-        -- Small delay to ensure Atlas is fully shown before calling AtlasLoot
-        -- This fixes the issue where loot doesn't show on fullscreen world map
         local delayFrame = CreateFrame("Frame")
         delayFrame.timer = 0
         delayFrame:SetScript("OnUpdate", function()
             this.timer = this.timer + arg1
             if this.timer >= 0.1 then
                 this:SetScript("OnUpdate", nil)
-                -- Protected call in case AtlasLoot has issues
-                local success = pcall(AtlasLoot_ShowBossLoot, dataID, displayName, AtlasFrame)
-                if not success then
+                local ok = pcall(AtlasLoot_ShowBossLoot, dataID, displayName, AtlasFrame)
+                if not ok then
                     DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000Error loading AtlasLoot data.|r")
                 end
             end
         end)
     else
-        DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000No Atlas data found for world boss \"" .. bossName .. "\".|r")
+        DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000No Atlas data found for \"" .. bossName .. "\".|r")
     end
 end
 
--- Atlas click handler
 local function OnAtlasClick()
     if this.atlasID and AtlasFrame and AtlasOptions then
-        -- Hide world map only if it's in fullscreen mode
+        PlaySoundFile(SOUND_CLICK)
         if WorldMapFrame:IsVisible() and IsWorldMapFullscreen() then
             HideUIPanel(WorldMapFrame)
         end
-        
-        local continent = GetCurrentMapContinent()
-        AtlasOptions.AtlasType = ATLAS_CONTINENT_MAP[continent]
+        AtlasOptions.AtlasType = ATLAS_CONTINENT_MAP[GetCurrentMapContinent()]
         AtlasOptions.AtlasZone = this.atlasID
         Atlas_Refresh()
         AtlasFrame:SetFrameStrata("FULLSCREEN")
         AtlasFrame:Show()
-        if AtlasQuestFrame then
-            AtlasQuestFrame:Show()
-        end
+        if AtlasQuestFrame then AtlasQuestFrame:Show() end
     end
 end
 
--- Create map pin
-local function CreateMapPin(x, y, size, texture, tooltipText, tooltipInfo, atlasID, kind)
+local function StartPinHighlight(pin)
+    pin.highlight:SetAlpha(0)
+    pin.findTimer = 0
+    pin:SetScript("OnUpdate", function()
+        this.findTimer = this.findTimer + arg1
+        local progress = this.findTimer / FIND_HIGHLIGHT_DURATION
+        if progress >= 1 then
+            this:SetWidth(this.originalSize)
+            this:SetHeight(this.originalSize)
+            this.highlight:SetAlpha(0)
+            this.findTimer = nil
+            this:SetScript("OnUpdate", nil)
+        else
+            local envelope = 1 - progress
+            local pulse    = (math_sin(progress * 3.14159 * 8) + 1) * 0.5
+            local sz = this.originalSize
+                + (this.originalSize * (FIND_SIZE_MULTIPLIER - 1)) * pulse * envelope
+            this:SetWidth(sz)
+            this:SetHeight(sz)
+            this.highlight:SetAlpha(FIND_HIGHLIGHT_ALPHA * pulse * envelope)
+        end
+    end)
+end
+
+local function OnTransportClick()
+    local dest = this.transportDest
+    if not dest then return end
+    local chosen
+    if this.isDualDest then
+        chosen = (arg1 == "RightButton") and dest[2] or dest[1]
+    else
+        chosen = dest
+    end
+    local cc = GetCurrentMapContinent()
+    local cz = GetCurrentMapZone()
+    PlaySoundFile("Sound\\Interface\\MapPing.wav")
+    -- Same-zone transport (e.g. Feralas intra-zone boats): no map change needed.
+    -- Directly highlight the other transport pin on the current map.
+    if chosen[1] == cc and chosen[2] == cz then
+        local clicked = this
+        for i = 1, activeMarkersCount do
+            local pin = activeMarkers[i]
+            if pin and pin ~= clicked and pin.transportDest then
+                local d = pin.transportDest
+                local match
+                if pin.isDualDest then
+                    match = (d[1][1] == cc and d[1][2] == cz)
+                         or (d[2][1] == cc and d[2][2] == cz)
+                else
+                    match = (d[1] == cc and d[2] == cz)
+                end
+                if match then
+                    StartPinHighlight(pin)
+                    break
+                end
+            end
+        end
+        return
+    end
+    -- Different-zone transport: zoom to destination and highlight the return marker.
+    pendingOriginC = cc
+    pendingOriginZ = cz
+    SetMapZoom(chosen[1], chosen[2])
+    MMM.ForceRedraw()
+end
+
+-- ============================================================
+-- Pin creation
+-- ============================================================
+
+local function CreateMapPin(x, y, size, texture, tooltipText, tooltipInfo, atlasID, kind, dest)
     local pin = GetMarkerFromPool()
-    
     pin:SetWidth(size)
     pin:SetHeight(size)
     pin:SetPoint("CENTER", WorldMapDetailFrame, "TOPLEFT", x, -y)
@@ -449,438 +353,300 @@ local function CreateMapPin(x, y, size, texture, tooltipText, tooltipInfo, atlas
     pin.highlight:SetAllPoints()
     pin.highlight:SetTexture(texture)
     pin.highlight:SetAlpha(0)
-    
-    pin.originalSize = size
-    pin.markerName = tooltipText
-    pin.markerInfo = tooltipInfo
-    pin.markerKind = kind
-    pin.atlasID = atlasID
-    
-    -- Pre-flag Emerald Dragons to avoid string search on click
-    pin.isEmeraldDragon = (kind == "worldboss" and tooltipInfo == "60" and not WORLD_BOSS_MAP[tooltipText]) or nil
+    pin.originalSize    = size
+    pin.markerName      = tooltipText
+    pin.markerInfo      = tooltipInfo
+    pin.markerKind      = kind
+    pin.atlasID         = atlasID
+    pin.transportDest   = dest
+    pin.isDualDest      = dest and type(dest[1]) == "table" or false
+    pin.isEmeraldDragon = (kind == "worldboss" and tooltipInfo == "60"
+                            and not WORLD_BOSS_MAP[tooltipText]) or nil
+
+    -- Build a left/right-click hint for dual-destination transports.
+    -- Name format is always "Zeppelins to A & B", so split on " & ".
+    if pin.isDualDest then
+        local _, _, left, right = strfind(tooltipText, "^.+ to (.+) %& (.+)$")
+        pin.markerHint = "|cFFFFD700Left-click:|r " .. (left  or "Destination 1")
+                      .. "   |cFFFFD700Right-click:|r " .. (right or "Destination 2")
+    end
+
+    pin:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 
     pin:SetScript("OnEnter", function()
-        ShowMarkerInfo(this.markerName, this.markerInfo)
-        
+        local hint = ModernMapMarkersDB.showTransportHints and this.markerHint or nil
+        MMM.ShowMarkerInfo(this.markerName, this.markerInfo, hint)
         local newSize = this.originalSize * HOVER_SIZE_MULTIPLIER
         this:SetWidth(newSize)
         this:SetHeight(newSize)
         this.highlight:SetAlpha(HOVER_ALPHA)
     end)
-
     pin:SetScript("OnLeave", function()
-        HideMarkerInfo()
-        
+        MMM.HideMarkerInfo()
         this:SetWidth(this.originalSize)
         this:SetHeight(this.originalSize)
         this.highlight:SetAlpha(0)
     end)
-
     pin:SetScript("OnClick", function()
         if this.markerKind == "worldboss" then
             OnWorldBossClick()
+        elseif this.markerKind == "boat" or this.markerKind == "zepp"
+            or this.markerKind == "tram" or this.markerKind == "portal" then
+            OnTransportClick()
         elseif this.atlasID then
             OnAtlasClick()
         end
     end)
-    
     pin:Show()
     return pin
 end
 
--- Clear all active markers
+-- ============================================================
+-- Marker display
+-- ============================================================
+
 local function ClearMarkers()
-    local count = activeMarkersCount
-    for i = 1, count do
+    for i = 1, activeMarkersCount do
         ReturnMarkerToPool(activeMarkers[i])
         activeMarkers[i] = nil
     end
     activeMarkersCount = 0
-    HideMarkerInfo()
+    MMM.HideMarkerInfo()
 end
 
--- Update markers on map
-local function UpdateMarkers()
-    if firstLoad or not initialized then
-        firstLoad = false
-        return
-    end
+function MMM.ClearMarkers()
+    ClearMarkers()
+end
 
-    if not ModernMapMarkersDB.showMarkers or not WorldMapFrame:IsVisible() then
-        return
-    end
-    
+local function UpdateMarkers()
+    if not initialized then return end
+    if not ModernMapMarkersDB.showMarkers or not WorldMapFrame:IsVisible() then return end
+
     local currentContinent = GetCurrentMapContinent()
-    local currentZone = GetCurrentMapZone()
-    
-    -- Clear markers if we're in an invalid zone (dungeons, instances, etc)
-    if currentContinent == INVALID_ZONE or currentZone == INVALID_ZONE then
+    local currentZone      = GetCurrentMapZone()
+
+    if currentContinent == 0 or currentZone == 0 then
         if activeMarkersCount > 0 then
             ClearMarkers()
-            lastContinent = INVALID_ZONE
-            lastZone = INVALID_ZONE
+            lastContinent = 0
+            lastZone      = 0
         end
         return
     end
-    
-    -- Cache check BEFORE throttle check
-    if currentContinent == lastContinent and currentZone == lastZone then
-        return
-    end
-    
-    -- Throttle updates
+
+    if currentContinent == lastContinent and currentZone == lastZone then return end
+
     local now = GetTime()
-    if now - lastUpdateTime < UPDATE_THROTTLE then
-        return
-    end
+    if now - lastUpdateTime < UPDATE_THROTTLE then return end
     lastUpdateTime = now
-    
+
     lastContinent = currentContinent
-    lastZone = currentZone
+    lastZone      = currentZone
 
     ClearMarkers()
 
-    local worldMap = WorldMapDetailFrame
-    local mapWidth = worldMap:GetWidth()
-    local mapHeight = worldMap:GetHeight()
-    
-    if mapWidth == 0 or mapHeight == 0 then
-        return
-    end
+    local mapWidth  = WorldMapDetailFrame:GetWidth()
+    local mapHeight = WorldMapDetailFrame:GetHeight()
+    if mapWidth == 0 or mapHeight == 0 then return end
 
-    -- Use indexed lookup
     local key = currentContinent * CONTINENT_MULTIPLIER + currentZone
     local relevantPoints = pointsByMap[key]
-    
-    if not relevantPoints then
-        return
-    end
+    if not relevantPoints then return end
 
-    -- Cache settings once
-    local db = ModernMapMarkersDB
-    local showDungeonRaids = db.showDungeonRaids
-    local showTransport = db.showTransport
-    local hideOtherFactionTransport = db.hideOtherFactionTransport
-    local showWorldBosses = db.showWorldBosses
-    local showPortals = db.showPortals
-    local hideOtherFactionPortals = db.hideOtherFactionPortals
-    local isHorde = (playerFaction == "Horde")
-    local isAlliance = (playerFaction == "Alliance")
-    
-    -- Pre-cache texture references for transport markers
-    local texDungeon = TEXTURES.dungeon
-    local texRaid = TEXTURES.raid
+    local db               = ModernMapMarkersDB
+    local showDungeons     = db.showDungeons
+    local showRaids        = db.showRaids
+    local showWorldBosses  = db.showWorldBosses
+    local showBoats        = db.showBoats
+    local showZeppelins    = db.showZeppelins
+    local showTrams        = db.showTrams
+    local showPortals      = db.showPortals
+    local transportFaction = db.transportFaction
+    local portalFaction    = db.portalFaction
+
+    local texDungeon   = TEXTURES.dungeon
+    local texRaid      = TEXTURES.raid
     local texWorldBoss = TEXTURES.worldboss
-    local texZepp = TEXTURES.zepp
-    local texBoat = TEXTURES.boat
-    local texTram = TEXTURES.tram
-    local texPortal = TEXTURES.portal
+    local texZepp      = TEXTURES.zepp
+    local texBoat      = TEXTURES.boat
+    local texTram      = TEXTURES.tram
+    local texPortal    = TEXTURES.portal
 
     local pointCount = getn(relevantPoints)
     for i = 1, pointCount do
-        local data = relevantPoints[i]
-        local x = data[3]
-        local y = data[4]
-        local label = data[5]
-        local kind = data[6]
-        local info = data[7]
-        local atlasID = data[8]
+        local data    = relevantPoints[i]
+        local kind    = data[4]
+        local info    = data[5]
         local shouldDisplay = false
+        local texture
 
-        -- Category toggles with optimized faction checks
-        if kind == "dungeon" or kind == "raid" then
-            shouldDisplay = showDungeonRaids
+        if kind == "dungeon" then
+            shouldDisplay = showDungeons
+            texture = texDungeon
+        elseif kind == "raid" then
+            shouldDisplay = showRaids
+            texture = texRaid
         elseif kind == "worldboss" then
             shouldDisplay = showWorldBosses
-        elseif kind == "boat" or kind == "zepp" or kind == "tram" then
-            shouldDisplay = showTransport
-            if shouldDisplay and hideOtherFactionTransport then
-                shouldDisplay = not ((info == "Alliance" and isHorde) or (info == "Horde" and isAlliance))
+            texture = texWorldBoss
+        elseif kind == "boat" then
+            shouldDisplay = showBoats
+            if shouldDisplay and transportFaction ~= "all" then
+                shouldDisplay = (info == transportFaction)
             end
+            texture = texBoat
+        elseif kind == "zepp" then
+            shouldDisplay = showZeppelins
+            if shouldDisplay and transportFaction ~= "all" then
+                shouldDisplay = (info == transportFaction)
+            end
+            texture = texZepp
+        elseif kind == "tram" then
+            shouldDisplay = showTrams
+            if shouldDisplay and transportFaction ~= "all" then
+                shouldDisplay = (info == transportFaction)
+            end
+            texture = texTram
         elseif kind == "portal" then
             shouldDisplay = showPortals
-            if shouldDisplay and hideOtherFactionPortals then
-                shouldDisplay = not ((info == "Alliance" and isHorde) or (info == "Horde" and isAlliance))
+            if shouldDisplay and portalFaction ~= "all" then
+                shouldDisplay = (info == portalFaction)
             end
+            texture = texPortal
         end
 
         if shouldDisplay then
-            -- Direct texture lookup without fallback check in hot path
-            local texture
-            if kind == "dungeon" then
-                texture = texDungeon
-            elseif kind == "raid" then
-                texture = texRaid
-            elseif kind == "worldboss" then
-                texture = texWorldBoss
-            elseif kind == "zepp" then
-                texture = texZepp
-            elseif kind == "boat" then
-                texture = texBoat
-            elseif kind == "tram" then
-                texture = texTram
-            elseif kind == "portal" then
-                texture = texPortal
-            else
-                texture = texDungeon
-            end
-            
-            local size = (kind == "zepp" or kind == "boat" or kind == "tram" or kind == "portal") and MARKER_SIZE_SMALL or MARKER_SIZE_LARGE
-            local px = x * mapWidth
-            local py = y * mapHeight
-            
-            local pin = CreateMapPin(px, py, size, texture, label, info, atlasID, kind)
+            local size = (kind == "boat" or kind == "zepp" or kind == "tram" or kind == "portal")
+                and MARKER_SIZE_SMALL or MARKER_SIZE_LARGE
+            local pin = CreateMapPin(
+                data[1] * mapWidth, data[2] * mapHeight,
+                size, texture,
+                data[3], info, data[6], kind, data[7])
             activeMarkersCount = activeMarkersCount + 1
             activeMarkers[activeMarkersCount] = pin
         end
     end
-end
 
--- Toggle checkbox creation
-local function CreateToggleCheckbox(parent, x, y, text, optionKey)
-    local checkbox = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
-    checkbox:SetPoint("TOPLEFT", x, y)
-    checkbox:SetWidth(24)
-    checkbox:SetHeight(24)
-    
-    local label = checkbox:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    label:SetPoint("LEFT", checkbox, "RIGHT", 5, 0)
-    label:SetText(text)
-    checkbox.label = label
-    
-    checkbox:SetScript("OnClick", function()
-        local isChecked = this:GetChecked()
-        ModernMapMarkersDB[optionKey] = isChecked and true or false
-        
-        if optionKey == "showMarkers" then
-            if not isChecked then
-                ClearMarkers()
-                if updateEnabled then
-                    frame:UnregisterEvent("WORLD_MAP_UPDATE")
-                    updateEnabled = false
+    -- If a Find Marker selection is pending, highlight the matching pin now.
+    if MMM.pendingHighlight then
+        local target = MMM.pendingHighlight
+        MMM.pendingHighlight = nil
+        for i = 1, activeMarkersCount do
+            local pin = activeMarkers[i]
+            if pin and pin.markerName == target then
+                StartPinHighlight(pin)
+                break
+            end
+        end
+    end
+
+    -- If a transport was just clicked, highlight the return transport at the destination.
+    if pendingOriginC then
+        local oc = pendingOriginC
+        local oz = pendingOriginZ
+        pendingOriginC = nil
+        pendingOriginZ = nil
+        for i = 1, activeMarkersCount do
+            local pin = activeMarkers[i]
+            if pin and pin.transportDest then
+                local d = pin.transportDest
+                local match
+                if pin.isDualDest then
+                    match = (d[1][1] == oc and d[1][2] == oz)
+                         or (d[2][1] == oc and d[2][2] == oz)
+                else
+                    match = (d[1] == oc and d[2] == oz)
                 end
-            else
-                if not updateEnabled then
-                    frame:RegisterEvent("WORLD_MAP_UPDATE")
-                    updateEnabled = true
+                if match then
+                    StartPinHighlight(pin)
+                    break
                 end
             end
         end
-        
-        lastContinent = 0
-        lastZone = 0
-        UpdateMarkers()
-    end)
-    
-    return checkbox
+    end
 end
 
--- Create config UI
-local function CreateConfigUI()
-    config = CreateFrame("Frame", "MMMConfigFrame", UIParent)
-    config.name = "Modern Map Markers"
-    config:SetWidth(320)
-    config:SetHeight(300)
-    config:SetPoint("CENTER", UIParent, "CENTER")
-    
-    tinsert(UISpecialFrames, "MMMConfigFrame")
-    
-    config:SetBackdrop(CONFIG_BACKDROP)
-    config:SetBackdropBorderColor(0.4, 0.4, 0.4)
-    config:SetBackdropColor(0, 0, 0, 0.5)
-    config:SetMovable(true)
-    config:EnableMouse(true)
-    config:RegisterForDrag("LeftButton")
-    config:SetScript("OnDragStart", function()
-        this:StartMoving()
-    end)
-    config:SetScript("OnDragStop", function()
-        this:StopMovingOrSizing()
-    end)
-    
-    local title = config:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    title:SetPoint("TOP", 0, -15)
-    title:SetText("Modern Map Markers")
+function MMM.UpdateMarkers()
+    UpdateMarkers()
+end
 
-    local masterLabel = config:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    masterLabel:SetPoint("TOPLEFT", 20, -45)
-    masterLabel:SetText("Enable Map Markers:")
-
-    masterToggle = CreateFrame("CheckButton", nil, config, "UICheckButtonTemplate")
-    masterToggle:SetPoint("LEFT", masterLabel, "RIGHT", 5, 0)
-    masterToggle:SetWidth(24)
-    masterToggle:SetHeight(24)
-
-    masterToggle:SetScript("OnClick", function()
-        local isChecked = this:GetChecked()
-        ModernMapMarkersDB.showMarkers = isChecked and true or false
-        
-        if not isChecked then
-            ClearMarkers()
-            if updateEnabled then
-                frame:UnregisterEvent("WORLD_MAP_UPDATE")
-                updateEnabled = false
-            end
-        else
-            if not updateEnabled then
-                frame:RegisterEvent("WORLD_MAP_UPDATE")
-                updateEnabled = true
-            end
+function MMM.RefreshVisibleTooltip()
+    for i = 1, activeMarkersCount do
+        local pin = activeMarkers[i]
+        if pin and pin:IsVisible() and MouseIsOver(pin) then
+            local hint = ModernMapMarkersDB.showTransportHints and pin.markerHint or nil
+            MMM.ShowMarkerInfo(pin.markerName, pin.markerInfo, hint)
+            return
         end
-        
-        lastContinent = 0
-        lastZone = 0
-        UpdateMarkers()
-    end)
-
-    dungeonRaidsToggle = CreateToggleCheckbox(config, 20, -75, "Show Dungeons & Raids", "showDungeonRaids")
-    transportToggle = CreateToggleCheckbox(config, 20, -100, "Show Transports (Boats, Zeppelins, Trams)", "showTransport")
-    transportFactionToggle = CreateToggleCheckbox(config, 20, -125, "Hide Opposing Faction Transports", "hideOtherFactionTransport")
-    worldBossToggle = CreateToggleCheckbox(config, 20, -150, "Show World Bosses", "showWorldBosses")
-    portalToggle = CreateToggleCheckbox(config, 20, -175, "Show Portals", "showPortals")
-    portalFactionToggle = CreateToggleCheckbox(config, 20, -200, "Hide Opposing Faction Portals", "hideOtherFactionPortals")
-
-    local closeButton = CreateFrame("Button", nil, config, "UIPanelButtonTemplate")
-    closeButton:SetWidth(80)
-    closeButton:SetHeight(25)
-    closeButton:SetPoint("BOTTOM", 0, 12)
-    closeButton:SetText("Close")
-    closeButton:SetScript("OnClick", function()
-        config:Hide()
-    end)
-
-    config:Hide()
-end
-
--- Sync checkboxes with saved variables
-local function SyncCheckboxes()
-    if masterToggle then
-        masterToggle:SetChecked(ModernMapMarkersDB.showMarkers)
-    end
-    if dungeonRaidsToggle then
-        dungeonRaidsToggle:SetChecked(ModernMapMarkersDB.showDungeonRaids)
-    end
-    if transportToggle then
-        transportToggle:SetChecked(ModernMapMarkersDB.showTransport)
-    end
-    if transportFactionToggle then
-        transportFactionToggle:SetChecked(ModernMapMarkersDB.hideOtherFactionTransport)
-    end
-    if worldBossToggle then
-        worldBossToggle:SetChecked(ModernMapMarkersDB.showWorldBosses)
-    end
-    if portalToggle then
-        portalToggle:SetChecked(ModernMapMarkersDB.showPortals)
-    end
-    if portalFactionToggle then
-        portalFactionToggle:SetChecked(ModernMapMarkersDB.hideOtherFactionPortals)
     end
 end
 
--- Initialize saved variables
+-- ============================================================
+-- Saved variables
+-- ============================================================
+
+local DEFAULTS = {
+    showMarkers        = true,
+    showDungeons       = true,
+    showRaids          = true,
+    showWorldBosses    = true,
+    showBoats          = true,
+    showZeppelins      = true,
+    showTrams          = true,
+    showPortals        = false,
+    transportFaction   = "all",
+    portalFaction      = "all",
+    showTransportHints = true,
+}
+
 local function InitializeSavedVariables()
-    if not ModernMapMarkersDB then
-        ModernMapMarkersDB = {
-            showMarkers = true,
-            showDungeonRaids = true,
-            showTransport = true,
-            hideOtherFactionTransport = false,
-            showWorldBosses = true,
-            showPortals = false,
-            hideOtherFactionPortals = false,
-        }
-    else
-        if ModernMapMarkersDB.showMarkers == nil then
-            ModernMapMarkersDB.showMarkers = true
-        end
-        if ModernMapMarkersDB.showDungeonRaids == nil then
-            ModernMapMarkersDB.showDungeonRaids = true
-        end
-        if ModernMapMarkersDB.showTransport == nil then
-            ModernMapMarkersDB.showTransport = true
-        end
-        if ModernMapMarkersDB.hideOtherFactionTransport == nil then
-            ModernMapMarkersDB.hideOtherFactionTransport = false
-        end
-        if ModernMapMarkersDB.showWorldBosses == nil then
-            ModernMapMarkersDB.showWorldBosses = true
-        end
-        if ModernMapMarkersDB.showPortals == nil then
-            ModernMapMarkersDB.showPortals = false
-        end
-        if ModernMapMarkersDB.hideOtherFactionPortals == nil then
-            ModernMapMarkersDB.hideOtherFactionPortals = false
-        end
+    if not ModernMapMarkersDB then ModernMapMarkersDB = {} end
+    local db = ModernMapMarkersDB
+    for k, v in pairs(DEFAULTS) do
+        if db[k] == nil then db[k] = v end
     end
 end
 
+-- ============================================================
 -- Event handling
+-- ============================================================
+
 frame:RegisterEvent("VARIABLES_LOADED")
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 frame:SetScript("OnEvent", function()
     if event == "ADDON_LOADED" and arg1 == "ModernMapMarkers" then
-        CreateConfigUI()
         BuildPointIndex()
-        FreeDefaultPoints() -- Free memory after indexing
         worldMapFrameLevel = WorldMapDetailFrame:GetFrameLevel() + 3
         this:UnregisterEvent("ADDON_LOADED")
-        
+
     elseif event == "VARIABLES_LOADED" then
         if not initialized then
             InitializeSavedVariables()
-            playerFaction = UnitFactionGroup("player")
-            SyncCheckboxes()
             initialized = true
-            
-            -- Register map updates if enabled
             if ModernMapMarkersDB.showMarkers then
                 frame:RegisterEvent("WORLD_MAP_UPDATE")
                 updateEnabled = true
             end
         end
         this:UnregisterEvent("VARIABLES_LOADED")
-        
+
     elseif event == "PLAYER_ENTERING_WORLD" then
         if not initialized then
             InitializeSavedVariables()
-            if not config then
-                CreateConfigUI()
-                if defaultPoints then
-                    BuildPointIndex()
-                    FreeDefaultPoints()
-                end
-                worldMapFrameLevel = WorldMapDetailFrame:GetFrameLevel() + 3
-            end
-            playerFaction = UnitFactionGroup("player")
-            SyncCheckboxes()
+            BuildPointIndex()
+            worldMapFrameLevel = WorldMapDetailFrame:GetFrameLevel() + 3
             initialized = true
-            
-            -- Register map updates if enabled
             if ModernMapMarkersDB.showMarkers then
                 frame:RegisterEvent("WORLD_MAP_UPDATE")
                 updateEnabled = true
             end
         end
-        lastContinent = INVALID_ZONE
-        lastZone = INVALID_ZONE
-        
+        lastContinent = 0
+        lastZone      = 0
+
     elseif event == "WORLD_MAP_UPDATE" then
-        if initialized then
-            UpdateMarkers()
-        end
+        if initialized then UpdateMarkers() end
     end
 end)
-
--- Slash command handler
-SLASH_MMM1 = "/mmm"
-SlashCmdList["MMM"] = function()
-    if MMMConfigFrame then
-        if MMMConfigFrame:IsVisible() then
-            MMMConfigFrame:Hide()
-        else
-            MMMConfigFrame:Show()
-        end
-    end
-end
