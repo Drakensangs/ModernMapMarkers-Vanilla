@@ -492,25 +492,25 @@ local function UpdateMarkers()
         elseif kind == "boat" then
             shouldDisplay = showBoats
             if shouldDisplay and transportFaction ~= "all" then
-                shouldDisplay = (info == transportFaction)
+                shouldDisplay = (info == transportFaction) or (info == "Neutral")
             end
             texture = texBoat
         elseif kind == "zepp" then
             shouldDisplay = showZeppelins
             if shouldDisplay and transportFaction ~= "all" then
-                shouldDisplay = (info == transportFaction)
+                shouldDisplay = (info == transportFaction) or (info == "Neutral")
             end
             texture = texZepp
         elseif kind == "tram" then
             shouldDisplay = showTrams
             if shouldDisplay and transportFaction ~= "all" then
-                shouldDisplay = (info == transportFaction)
+                shouldDisplay = (info == transportFaction) or (info == "Neutral")
             end
             texture = texTram
         elseif kind == "portal" then
             shouldDisplay = showPortals
             if shouldDisplay and portalFaction ~= "all" then
-                shouldDisplay = (info == portalFaction)
+                shouldDisplay = (info == portalFaction) or (info == "Neutral")
             end
             texture = texPortal
         end
@@ -650,3 +650,4 @@ frame:SetScript("OnEvent", function()
         if initialized then UpdateMarkers() end
     end
 end)
+
