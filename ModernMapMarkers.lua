@@ -608,6 +608,38 @@ local function InitializeSavedVariables()
 end
 
 -- ============================================================
+-- Silent Atlas priming
+-- ============================================================
+
+-- Silently runs Atlas_Refresh() with Naxxramas selected, then restores the
+-- previous AtlasOptions state. No frame is ever shown; this exists solely to
+-- force Atlas to complete any deferred internal initialization that it skips
+-- until the first real Refresh call. Called once on PLAYER_ENTERING_WORLD via
+-- a short OnUpdate delay to guarantee Atlas has finished loading first.
+local function PrimeAtlasSilently()
+    if not Atlas_Refresh or not AtlasOptions then return end
+    local savedType = AtlasOptions.AtlasType
+    local savedZone = AtlasOptions.AtlasZone
+    AtlasOptions.AtlasType = 1  -- Eastern Kingdoms
+    AtlasOptions.AtlasZone = 7  -- Naxxramas
+    Atlas_Refresh()
+    AtlasOptions.AtlasType = savedType
+    AtlasOptions.AtlasZone = savedZone
+end
+
+local function ScheduleAtlasPriming()
+    local primerFrame = CreateFrame("Frame")
+    primerFrame.timer = 0
+    primerFrame:SetScript("OnUpdate", function()
+        this.timer = this.timer + arg1
+        if this.timer >= 0.5 then
+            this:SetScript("OnUpdate", nil)
+            PrimeAtlasSilently()
+        end
+    end)
+end
+
+-- ============================================================
 -- Event handling
 -- ============================================================
 
@@ -645,9 +677,9 @@ frame:SetScript("OnEvent", function()
         end
         lastContinent = 0
         lastZone      = 0
+        ScheduleAtlasPriming()
 
     elseif event == "WORLD_MAP_UPDATE" then
         if initialized then UpdateMarkers() end
     end
 end)
-
