@@ -470,6 +470,7 @@ SlashCmdList["MMM"] = function(msg)
         MMM.RefreshVisibleTooltip()
         return
     end
+    if msg and msg ~= "" then return end
     if MMMFilterDropdown then
         if MMMFilterDropdown:IsShown() then MMMFilterDropdown:Hide() else MMMFilterDropdown:Show() end
     end
