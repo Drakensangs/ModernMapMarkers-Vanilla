@@ -65,6 +65,7 @@ local getn        = getn
 local math_random = math.random
 local math_sin    = math.sin
 local strfind     = string.find
+local strsub      = string.sub
 local pcall       = pcall
 
 -- ============================================================
@@ -124,8 +125,11 @@ local function BuildPointIndex()
                 bucket = {}
                 pointsByMap[key] = bucket
             end
-            -- Internal format: { x, y, name, type, info, atlasID, dest }
-            tinsert(bucket, {p[2], p[3], p[4], p[5], p[6], p[7], p[8]})
+            -- p[8] is either a dest table (transports) or the string "dropdown".
+            -- Internal format: { x, y, name, type, info, atlasID, dest, dropdownOnly }
+            local dest         = (p[8] ~= "dropdown") and p[8] or nil
+            local dropdownOnly = (p[8] == "dropdown")
+            tinsert(bucket, {p[2], p[3], p[4], p[5], p[6], p[7], dest, dropdownOnly})
         end
     end
 end
@@ -143,12 +147,13 @@ function MMM.GetFlatData()
             local p = points[i]
             if not skip[p[5]] then
                 tinsert(result, {
-                    continent   = continentID,
-                    zone        = p[1],
-                    name        = p[4],
-                    type        = p[5],
-                    description = p[6],
-                    atlasID     = p[7],
+                    continent    = continentID,
+                    zone         = p[1],
+                    name         = p[4],
+                    type         = p[5],
+                    description  = p[6],
+                    atlasID      = p[7],
+                    dropdownOnly = (p[8] == "dropdown"),
                 })
             end
         end
@@ -184,6 +189,7 @@ local function ReturnMarkerToPool(marker)
     marker:SetScript("OnUpdate", nil)
     marker.findTimer       = nil
     marker.markerName      = nil
+    marker.markerFullName  = nil
     marker.markerInfo      = nil
     marker.markerHint      = nil
     marker.markerKind      = nil
@@ -518,10 +524,20 @@ local function UpdateMarkers()
         if shouldDisplay then
             local size = (kind == "boat" or kind == "zepp" or kind == "tram" or kind == "portal")
                 and MARKER_SIZE_SMALL or MARKER_SIZE_LARGE
+            -- For "dropdown" markers, strip the \n comment from the hover label name
+            -- but keep the full name on the pin so pendingHighlight matching still works.
+            local displayName = data[3]
+            if data[8] then
+                local nl = strfind(displayName, "\n")
+                if nl then displayName = strsub(displayName, 1, nl - 1) end
+            end
             local pin = CreateMapPin(
                 data[1] * mapWidth, data[2] * mapHeight,
                 size, texture,
-                data[3], info, data[6], kind, data[7])
+                displayName, info, data[6], kind, data[7])
+            -- Store the full name (including \n comment) separately so
+            -- pendingHighlight matching works even for "dropdown" markers.
+            pin.markerFullName = data[3]
             activeMarkersCount = activeMarkersCount + 1
             activeMarkers[activeMarkersCount] = pin
         end
@@ -533,7 +549,7 @@ local function UpdateMarkers()
         MMM.pendingHighlight = nil
         for i = 1, activeMarkersCount do
             local pin = activeMarkers[i]
-            if pin and pin.markerName == target then
+            if pin and (pin.markerFullName == target or pin.markerName == target) then
                 StartPinHighlight(pin)
                 break
             end
