@@ -36,8 +36,8 @@ MMM_MarkerData = {
         {13, 0.269, 0.987, "Temple of Ahn'Qiraj", "raid", "60", 11},
         -- Kalimdor World Bosses
         {2, 0.535, 0.816, "Azuregos", "worldboss", "60", nil},
-        {1, 0.937, 0.355, "Emerald Dragon - Spawn Point 1 of 4", "worldboss", "60", nil},
-        {9, 0.512, 0.108, "Emerald Dragon - Spawn Point 2 of 4", "worldboss", "60", nil},
+        {1, 0.937, 0.355, "Emerald Dragon\n|cFF808080(Bough Shadow)|r", "worldboss", "60", nil},
+        {9, 0.512, 0.108, "Emerald Dragon\n|cFF808080(Dream Bough)|r", "worldboss", "60", nil},
         -- Kalimdor Transport
         -- Theramore zeppelin tower: Left = Tirisfal Glades, Right = Grom'Gol Base Camp
         {6, 0.512, 0.135, "Zeppelins to Tirisfal Glades & Grom'Gol", "zepp", "Horde", nil, {{2, 21}, {2, 18}}},
@@ -60,13 +60,13 @@ MMM_MarkerData = {
     -- -------------------------------------------------------------------------
 
         -- Eastern Kingdoms Dungeons
-        {15, 0.387, 0.833, "Blackrock Depths", "dungeon", "52-60", 1},
-        {5, 0.328, 0.365, "Blackrock Depths", "dungeon", "52-60", 1},
+        {15, 0.387, 0.833, "Blackrock Depths\n|cFF808080(Searing Gorge)|r", "dungeon", "52-60", 1, "dropdown"},
+        {5, 0.328, 0.365, "Blackrock Depths\n|cFF808080(Burning Steppes)|r", "dungeon", "52-60", 1, "dropdown"},
         {24, 0.423, 0.726, "The Deadmines", "dungeon", "17-24", 3},
         {7, 0.178, 0.392, "Gnomeregan", "dungeon", "29-38", 4},
         {7, 0.216, 0.3, "Gnomeregan\n|cFF808080(Workshop Entrance)|r", "dungeon", "29-38", 4},
-        {5, 0.32, 0.39, "Lower Blackrock Spire", "dungeon", "55-60", 5},
-        {15, 0.379, 0.858, "Lower Blackrock Spire", "dungeon", "55-60", 5},
+        {5, 0.32, 0.39, "Lower Blackrock Spire\n|cFF808080(Burning Steppes)|r", "dungeon", "55-60", 5, "dropdown"},
+        {15, 0.379, 0.858, "Lower Blackrock Spire\n|cFF808080(Searing Gorge)|r", "dungeon", "55-60", 5, "dropdown"},
         {21, 0.87, 0.325, "Scarlet Monastery - Armory", "dungeon", "32-42", 8},
         {21, 0.862, 0.295, "Scarlet Monastery - Cathedral", "dungeon", "35-45", 9},
         {21, 0.839, 0.283, "Scarlet Monastery - Graveyard", "dungeon", "26-36", 10},
@@ -79,18 +79,18 @@ MMM_MarkerData = {
         {19, 0.703, 0.55, "The Sunken Temple", "dungeon", "50-60", 16},
         {3, 0.429, 0.13, "Uldaman", "dungeon", "41-51", 17},
         {3, 0.657, 0.438, "Uldaman\n|cFF808080(Back Entrance)|r", "dungeon", "41-51", 17},
-        {5, 0.312, 0.365, "Upper Blackrock Spire", "dungeon", "55-60", 18},
-        {15, 0.371, 0.833, "Upper Blackrock Spire", "dungeon", "55-60", 18},
+        {5, 0.312, 0.365, "Upper Blackrock Spire\n|cFF808080(Burning Steppes)|r", "dungeon", "55-60", 18, "dropdown"},
+        {15, 0.371, 0.833, "Upper Blackrock Spire\n|cFF808080(Searing Gorge)|r", "dungeon", "55-60", 18, "dropdown"},
         -- Eastern Kingdoms Raids
-        {15, 0.332, 0.833, "Blackwing Lair", "raid", "60", 2},
-        {5, 0.273, 0.363, "Blackwing Lair", "raid", "60", 2},
-        {15, 0.332, 0.86, "Molten Core", "raid", "60", 6},
-        {5, 0.273, 0.39, "Molten Core", "raid", "60", 6},
+        {15, 0.332, 0.833, "Blackwing Lair\n|cFF808080(Searing Gorge)|r", "raid", "60", 2, "dropdown"},
+        {5, 0.273, 0.363, "Blackwing Lair\n|cFF808080(Burning Steppes)|r", "raid", "60", 2, "dropdown"},
+        {15, 0.332, 0.86, "Molten Core\n|cFF808080(Searing Gorge)|r", "raid", "60", 6, "dropdown"},
+        {5, 0.273, 0.39, "Molten Core\n|cFF808080(Burning Steppes)|r", "raid", "60", 6, "dropdown"},
         {9, 0.399, 0.259, "Naxxramas", "raid", "60", 7},
         {18, 0.53, 0.172, "Zul'Gurub", "raid", "60", 19},
         -- Eastern Kingdoms World Bosses
-        {8, 0.465, 0.357, "Emerald Dragon - Spawn Point 3 of 4", "worldboss", "60", nil},
-        {20, 0.632, 0.217, "Emerald Dragon - Spawn Point 4 of 4", "worldboss", "60", nil},
+        {8, 0.465, 0.357, "Emerald Dragon\n|cFF808080(The Twilight Grove)|r", "worldboss", "60", nil},
+        {20, 0.632, 0.217, "Emerald Dragon\n|cFF808080(Seradane)|r", "worldboss", "60", nil},
         {4, 0.36, 0.753, "Lord Kazzak", "worldboss", "60", 7},
         -- Eastern Kingdoms Transport
         -- Deeprun Tram (Stormwind/Gnomeregan districts)
