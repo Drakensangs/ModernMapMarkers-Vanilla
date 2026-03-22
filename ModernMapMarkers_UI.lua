@@ -468,7 +468,7 @@ local function CreateFindPanel(anchorFrame)
                     row.dataContinent = slot.continent
                     row.dataZone      = slot.zone
                     row.dataName      = slot.dataName
-                    if slot.hasComment then
+                    if slot.hasComment and i < FIND_MAX_VISIBLE_ROWS then
                         row.hlTex:ClearAllPoints()
                         row.hlTex:SetPoint("TOPLEFT",     row, "TOPLEFT",     0,  0)
                         row.hlTex:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", 0, -FIND_ROW_HEIGHT)
