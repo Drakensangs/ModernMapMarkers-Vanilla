@@ -242,9 +242,12 @@ local function OnWorldBossClick()
         if AtlasFrame and AtlasOptions then
             AtlasOptions.AtlasType = 3
             AtlasOptions.AtlasZone = atlasIndex
+            local savedAutoSelect = AtlasOptions.AtlasAutoSelect
+            AtlasOptions.AtlasAutoSelect = false
             Atlas_Refresh()
             AtlasFrame:SetFrameStrata("FULLSCREEN")
             AtlasFrame:Show()
+            AtlasOptions.AtlasAutoSelect = savedAutoSelect
         end
         local delayFrame = CreateFrame("Frame")
         delayFrame.timer = 0
@@ -271,9 +274,12 @@ local function OnAtlasClick()
         end
         AtlasOptions.AtlasType = ATLAS_CONTINENT_MAP[GetCurrentMapContinent()]
         AtlasOptions.AtlasZone = this.atlasID
+        local savedAutoSelect = AtlasOptions.AtlasAutoSelect
+        AtlasOptions.AtlasAutoSelect = false
         Atlas_Refresh()
         AtlasFrame:SetFrameStrata("FULLSCREEN")
         AtlasFrame:Show()
+        AtlasOptions.AtlasAutoSelect = savedAutoSelect
         if AtlasQuestFrame then AtlasQuestFrame:Show() end
     end
 end
