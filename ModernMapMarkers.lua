@@ -221,6 +221,104 @@ local function IsWorldMapFullscreen()
             WorldMapFrame:GetHeight() / GetScreenHeight() > 0.9)
 end
 
+-- ============================================================
+-- Atlas sort-mode compatibility
+-- ============================================================
+
+local mmmZoneID  = nil
+local mmmAtlasType = nil
+local mmmAtlasZone = nil
+
+local function ParkAtlasOnZone(zoneID)
+    if not zoneID then return false end
+    for t, zones in pairs(ATLAS_DROPDOWNS) do
+        for z, id in pairs(zones) do
+            if id == zoneID then
+                AtlasOptions.AtlasType = t
+                AtlasOptions.AtlasZone = z
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local function WithContinentSort(callback)
+    if not AtlasOptions then
+        callback()
+        return
+    end
+
+    local savedSortBy = AtlasOptions.AtlasSortBy
+    local needsSwitch = savedSortBy and savedSortBy ~= 1
+
+    if needsSwitch then
+        local savedType = AtlasOptions.AtlasType
+        local savedZone = AtlasOptions.AtlasZone
+
+        AtlasOptions.AtlasSortBy = 1
+        Atlas_PopulateDropdowns()
+
+        callback()
+
+        local openedZoneID = ATLAS_DROPDOWNS[AtlasOptions.AtlasType]
+                         and ATLAS_DROPDOWNS[AtlasOptions.AtlasType][AtlasOptions.AtlasZone]
+
+        AtlasOptions.AtlasSortBy = savedSortBy
+        Atlas_PopulateDropdowns()
+
+        if not ParkAtlasOnZone(openedZoneID) then
+            AtlasOptions.AtlasType = savedType
+            AtlasOptions.AtlasZone = savedZone
+        end
+    else
+        callback()
+    end
+end
+
+local atlasToggleHooked = false
+local function HookAtlasToggle()
+    if atlasToggleHooked then return end
+    if not Atlas_Toggle then return end
+    atlasToggleHooked = true
+
+    local original_Atlas_Toggle = Atlas_Toggle
+    Atlas_Toggle = function()
+        local willShow = not AtlasFrame:IsVisible()
+        if willShow
+            and mmmAtlasType
+            and AtlasOptions
+            and AtlasOptions.AtlasSortBy ~= 1
+        then
+            local savedType = mmmAtlasType
+            local savedZone = mmmAtlasZone
+            WithContinentSort(function()
+                AtlasOptions.AtlasType = savedType
+                AtlasOptions.AtlasZone = savedZone
+                original_Atlas_Toggle()
+            end)
+        else
+            original_Atlas_Toggle()
+        end
+    end
+
+    local original_Type_OnClick = AtlasFrameDropDownType_OnClick
+    AtlasFrameDropDownType_OnClick = function()
+        mmmZoneID  = nil
+        mmmAtlasType = nil
+        mmmAtlasZone = nil
+        original_Type_OnClick()
+    end
+
+    local original_Zone_OnClick = AtlasFrameDropDown_OnClick
+    AtlasFrameDropDown_OnClick = function()
+        mmmZoneID  = nil
+        mmmAtlasType = nil
+        mmmAtlasZone = nil
+        original_Zone_OnClick()
+    end
+end
+
 local function OnWorldBossClick()
     if not AtlasLoot_ShowBossLoot or not AtlasFrame or not Atlas_Refresh then
         DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000AtlasLoot not loaded.|r")
@@ -239,16 +337,21 @@ local function OnWorldBossClick()
         if WorldMapFrame:IsVisible() and IsWorldMapFullscreen() then
             HideUIPanel(WorldMapFrame)
         end
-        if AtlasFrame and AtlasOptions then
-            AtlasOptions.AtlasType = 3
-            AtlasOptions.AtlasZone = atlasIndex
-            local savedAutoSelect = AtlasOptions.AtlasAutoSelect
-            AtlasOptions.AtlasAutoSelect = false
-            Atlas_Refresh()
-            AtlasFrame:SetFrameStrata("FULLSCREEN")
-            AtlasFrame:Show()
-            AtlasOptions.AtlasAutoSelect = savedAutoSelect
-        end
+        WithContinentSort(function()
+            if AtlasFrame and AtlasOptions then
+                AtlasOptions.AtlasType = 3
+                AtlasOptions.AtlasZone = atlasIndex
+                local savedAutoSelect = AtlasOptions.AtlasAutoSelect
+                AtlasOptions.AtlasAutoSelect = false
+                Atlas_Refresh()
+                AtlasFrame:SetFrameStrata("FULLSCREEN")
+                AtlasFrame:Show()
+                AtlasOptions.AtlasAutoSelect = savedAutoSelect
+                mmmAtlasType = 3
+                mmmAtlasZone = atlasIndex
+                mmmZoneID = ATLAS_DROPDOWNS[3] and ATLAS_DROPDOWNS[3][atlasIndex]
+            end
+        end)
         local delayFrame = CreateFrame("Frame")
         delayFrame.timer = 0
         delayFrame:SetScript("OnUpdate", function()
@@ -272,14 +375,21 @@ local function OnAtlasClick()
         if WorldMapFrame:IsVisible() and IsWorldMapFullscreen() then
             HideUIPanel(WorldMapFrame)
         end
-        AtlasOptions.AtlasType = ATLAS_CONTINENT_MAP[GetCurrentMapContinent()]
-        AtlasOptions.AtlasZone = this.atlasID
-        local savedAutoSelect = AtlasOptions.AtlasAutoSelect
-        AtlasOptions.AtlasAutoSelect = false
-        Atlas_Refresh()
-        AtlasFrame:SetFrameStrata("FULLSCREEN")
-        AtlasFrame:Show()
-        AtlasOptions.AtlasAutoSelect = savedAutoSelect
+        local atlasType = ATLAS_CONTINENT_MAP[GetCurrentMapContinent()]
+        local atlasZone = this.atlasID
+        WithContinentSort(function()
+            AtlasOptions.AtlasType = atlasType
+            AtlasOptions.AtlasZone = atlasZone
+            local savedAutoSelect = AtlasOptions.AtlasAutoSelect
+            AtlasOptions.AtlasAutoSelect = false
+            Atlas_Refresh()
+            AtlasFrame:SetFrameStrata("FULLSCREEN")
+            AtlasFrame:Show()
+            AtlasOptions.AtlasAutoSelect = savedAutoSelect
+            mmmAtlasType = atlasType
+            mmmAtlasZone = atlasZone
+            mmmZoneID = ATLAS_DROPDOWNS[atlasType] and ATLAS_DROPDOWNS[atlasType][atlasZone]
+        end)
         if AtlasQuestFrame then AtlasQuestFrame:Show() end
     end
 end
@@ -633,20 +743,13 @@ end
 -- Silent Atlas priming
 -- ============================================================
 
--- Silently runs Atlas_Refresh() with Naxxramas selected, then restores the
--- previous AtlasOptions state. No frame is ever shown; this exists solely to
--- force Atlas to complete any deferred internal initialization that it skips
--- until the first real Refresh call. Called once on PLAYER_ENTERING_WORLD via
--- a short OnUpdate delay to guarantee Atlas has finished loading first.
 local function PrimeAtlasSilently()
     if not Atlas_Refresh or not AtlasOptions then return end
-    local savedType = AtlasOptions.AtlasType
-    local savedZone = AtlasOptions.AtlasZone
-    AtlasOptions.AtlasType = 1  -- Eastern Kingdoms
-    AtlasOptions.AtlasZone = 7  -- Naxxramas
-    Atlas_Refresh()
-    AtlasOptions.AtlasType = savedType
-    AtlasOptions.AtlasZone = savedZone
+    WithContinentSort(function()
+        AtlasOptions.AtlasType = 1
+        AtlasOptions.AtlasZone = 7
+        Atlas_Refresh()
+    end)
 end
 
 local function ScheduleAtlasPriming()
@@ -657,6 +760,7 @@ local function ScheduleAtlasPriming()
         if this.timer >= 0.5 then
             this:SetScript("OnUpdate", nil)
             PrimeAtlasSilently()
+            HookAtlasToggle()
         end
     end)
 end
