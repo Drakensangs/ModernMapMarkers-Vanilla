@@ -678,6 +678,7 @@ local function CreateDropdowns()
     local findPanel, updateFindButtonStates, refreshFindList = CreateFindPanel(findDropdown)
     if findBtn then
         findBtn:SetScript("OnClick", function()
+            PlaySound("igMainMenuOptionCheckBoxOn")
             local panel = getglobal("MMMFindPanel")
             if panel then
                 if panel:IsVisible() then
