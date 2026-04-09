@@ -28,7 +28,7 @@ Vanilla 1.12.1 version: Drakensangs
 
 ## 🎥 **Video Demonstration:**
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/sPUqtEJxmPo/0.jpg)](https://www.youtube.com/watch?v=sPUqtEJxmPo)
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/F5iku0JxY7w/0.jpg)](https://www.youtube.com/watch?v=F5iku0JxY7w)
 
 ## 📸 **Screenshots**
 
