@@ -702,6 +702,13 @@ function MMM.UpdateMarkers()
     UpdateMarkers()
 end
 
+function MMM.RestorePinAlpha()
+    for i = 1, activeMarkersCount do
+        local pin = activeMarkers[i]
+        if pin then pin:SetAlpha(1) end
+    end
+end
+
 function MMM.RefreshVisibleTooltip()
     for i = 1, activeMarkersCount do
         local pin = activeMarkers[i]
