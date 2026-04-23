@@ -18,9 +18,9 @@ local min     = math.min
 local markerLabel
 
 local function CreateMarkerLabel()
-    markerLabel = CreateFrame("Frame", "MMMMarkerLabelFrame", WorldMapDetailFrame)
+    markerLabel = CreateFrame("Frame", "MMMMarkerLabelFrame", WorldMapFrame)
     markerLabel:SetFrameStrata("TOOLTIP")
-    markerLabel:SetFrameLevel(WorldMapDetailFrame:GetFrameLevel() + 10)
+    markerLabel:SetFrameLevel(WorldMapFrame:GetFrameLevel() + 20)
     markerLabel:SetWidth(400)
     markerLabel:SetHeight(60)
 
@@ -28,7 +28,7 @@ local function CreateMarkerLabel()
     if areaLabel then
         markerLabel:SetPoint("TOP", areaLabel, "TOP", 0, 0)
     else
-        markerLabel:SetPoint("TOP", WorldMapDetailFrame, "TOP", 0, -10)
+        markerLabel:SetPoint("TOP", WorldMapFrame, "TOP", 0, -60)
     end
 
     markerLabel.name = markerLabel:CreateFontString(nil, "OVERLAY")
@@ -42,12 +42,18 @@ local function CreateMarkerLabel()
         local sx, sy = areaLabel:GetShadowOffset()
         markerLabel.name:SetShadowColor(r, g, b, a)
         markerLabel.name:SetShadowOffset(sx, sy)
-        local tr, tg, tb = areaLabel:GetTextColor()
-        markerLabel.name:SetTextColor(tr, tg, tb)
+        if isCartographer then
+            markerLabel.nameColor = {1, 1, 1}
+        else
+            local tr, tg, tb = areaLabel:GetTextColor()
+            markerLabel.nameColor = {tr, tg, tb}
+        end
+        markerLabel.name:SetTextColor(markerLabel.nameColor[1], markerLabel.nameColor[2], markerLabel.nameColor[3])
     else
         markerLabel.name:SetFont("Fonts\\FRIZQT__.TTF", 18, "OUTLINE, THICKOUTLINE")
         markerLabel.name:SetShadowColor(0, 0, 0, 1)
         markerLabel.name:SetShadowOffset(1, -1)
+        markerLabel.nameColor = {1, 0.82, 0}
         markerLabel.name:SetTextColor(1, 0.82, 0)
     end
 
@@ -89,8 +95,15 @@ end
 
 function MMM.ShowMarkerInfo(name, info, hint)
     if not markerLabel then CreateMarkerLabel() end
-    if WorldMapFrameAreaLabel then WorldMapFrameAreaLabel:Hide() end
+    if WorldMapFrameAreaLabel then
+        if not WorldMapFrameAreaLabel._mmmOrigShow then
+            WorldMapFrameAreaLabel._mmmOrigShow = WorldMapFrameAreaLabel.Show
+        end
+        WorldMapFrameAreaLabel.Show = function() end
+        WorldMapFrameAreaLabel:Hide()
+    end
 
+    markerLabel.name:SetTextColor(markerLabel.nameColor[1], markerLabel.nameColor[2], markerLabel.nameColor[3])
     markerLabel.name:SetText(name)
 
     if info and info ~= "" then
@@ -124,12 +137,18 @@ function MMM.ShowMarkerInfo(name, info, hint)
         markerLabel.hint:Hide()
     end
 
+    markerLabel:SetAlpha(1)
     markerLabel:Show()
 end
 
 function MMM.HideMarkerInfo()
     if markerLabel then markerLabel:Hide() end
-    if WorldMapFrameAreaLabel then WorldMapFrameAreaLabel:Show() end
+    -- Restore WorldMapFrameAreaLabel:Show so Cartographer can use it normally.
+    if WorldMapFrameAreaLabel and WorldMapFrameAreaLabel._mmmOrigShow then
+        WorldMapFrameAreaLabel.Show = WorldMapFrameAreaLabel._mmmOrigShow
+        WorldMapFrameAreaLabel._mmmOrigShow = nil
+        WorldMapFrameAreaLabel:Show()
+    end
 end
 
 -- ============================================================
@@ -620,16 +639,50 @@ end
 -- ============================================================
 
 -- pfDrop is safe at module level: pfQuest frames exist by parse time.
--- isShaguMap and isPfUIMapOn read saved variables so are set at VARIABLES_LOADED.
+-- isShaguMap, isPfUIMapOn, and isCartographer read saved variables /
+-- addon state so are set at VARIABLES_LOADED.
 local pfDrop
 local isShaguMap
 local isPfUIMapOn
+local isCartographer
+
+-- Cartographer dropdown menu offset
+local CART_OFFSET_X = 0
+local CART_OFFSET_Y = -10
+
+local cartAlphaHooked = false
+local function RestoreMMMAlpha()
+    if MMMFilterDropdown then MMMFilterDropdown:SetAlpha(1) end
+    if MMMFindDropdown   then MMMFindDropdown:SetAlpha(1)   end
+    local panel = getglobal("MMMFindPanel")
+    if panel then panel:SetAlpha(1) end
+    local label = getglobal("MMMMarkerLabelFrame")
+    if label then label:SetAlpha(1) end
+    if MMM and MMM.RestorePinAlpha then MMM.RestorePinAlpha() end
+end
+local function HookCartographerAlpha()
+    if cartAlphaHooked then return end
+    if not Cartographer_LookNFeel then return end
+    cartAlphaHooked = true
+    local origSetAlpha = Cartographer_LookNFeel.SetAlpha
+    Cartographer_LookNFeel.SetAlpha = function(self, value)
+        origSetAlpha(self, value)
+        RestoreMMMAlpha()
+    end
+    local origSetOverlayAlpha = Cartographer_LookNFeel.SetOverlayAlpha
+    Cartographer_LookNFeel.SetOverlayAlpha = function(self, value)
+        origSetOverlayAlpha(self, value)
+        RestoreMMMAlpha()
+    end
+end
 
 local function ResolveCompatState()
-    pfDrop      = getglobal("pfQuestMapDropdown")
-    local stKey = ShaguTweaks and ShaguTweaks.T and ShaguTweaks.T["WorldMap Window"]
-    isShaguMap  = stKey and ShaguTweaks_config and ShaguTweaks_config[stKey] == 1
-    isPfUIMapOn = isPfUI and not (pfUI_config and pfUI_config["disabled"] and pfUI_config["disabled"]["map"] == "1")
+    pfDrop         = getglobal("pfQuestMapDropdown")
+    local stKey    = ShaguTweaks and ShaguTweaks.T and ShaguTweaks.T["WorldMap Window"]
+    isShaguMap     = stKey and ShaguTweaks_config and ShaguTweaks_config[stKey] == 1
+    isPfUIMapOn    = isPfUI and not (pfUI_config and pfUI_config["disabled"] and pfUI_config["disabled"]["map"] == "1")
+    isCartographer = (not pfDrop) and (Cartographer ~= nil)
+    if isCartographer then HookCartographerAlpha() end
 end
 
 local function PositionDropdowns()
@@ -637,6 +690,8 @@ local function PositionDropdowns()
     MMMFilterDropdown:ClearAllPoints()
     if pfDrop then
         MMMFilterDropdown:SetPoint("TOPRIGHT", pfDrop, "BOTTOMRIGHT", 0, 0)
+    elseif isCartographer then
+        MMMFilterDropdown:SetPoint("TOPRIGHT", WorldMapDetailFrame, "TOPRIGHT", CART_OFFSET_X, CART_OFFSET_Y)
     elseif isPfUIMapOn or isShaguMap then
         MMMFilterDropdown:SetPoint("TOPRIGHT", WorldMapFrame, "TOPRIGHT", -8, -56)
     else
@@ -696,6 +751,17 @@ local function CreateDropdowns()
     if isPfUI and pfUI and pfUI.api and pfUI.api.SkinDropDown then
         pfUI.api.SkinDropDown(filterDropdown)
         pfUI.api.SkinDropDown(findDropdown)
+        if pfUI.api.CreateBackdrop then
+            pfUI.api.CreateBackdrop(findPanel)
+            findPanel:Hide()
+        end
+        if pfUI.api.SkinButton then
+            pfUI.api.SkinButton(getglobal("MMMFind_Kalimdor"))
+            pfUI.api.SkinButton(getglobal("MMMFind_EK"))
+            for i = 1, getn(FIND_TYPES) do
+                pfUI.api.SkinButton(getglobal("MMMFind_Type" .. i))
+            end
+        end
     end
 end
 
