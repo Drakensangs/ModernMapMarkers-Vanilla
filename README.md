@@ -12,6 +12,8 @@ A lightweight addon that places markers on the world map for dungeons, raids, wo
  
  **Atlas** & **AtlasQuest** support. Click any dungeon, raid and world boss markers to open up the coresponding Atlas page.
 
+**Atlas-CFM** support. Make sure to disable Arthas-CFM's map markers from its options menu.
+
  **pfUI** & **ShaguTweaks** support.
  
  Type **/mmm** to enable/disable the world map dropdown menus.
