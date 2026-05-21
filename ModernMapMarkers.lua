@@ -222,6 +222,99 @@ local function IsWorldMapFullscreen()
 end
 
 -- ============================================================
+-- Atlas / Atlas-CFM backend abstraction
+-- ============================================================
+local CFM_KALIMDOR_MAP = {
+    [1]  = "BlackfathomDeeps",
+    [2]  = "DireMaulEast",
+    [3]  = "DireMaulNorth",
+    [4]  = "DireMaulWest",
+    [5]  = "Maraudon",
+    [6]  = "OnyxiasLair",
+    [7]  = "RagefireChasm",
+    [8]  = "RazorfenDowns",
+    [9]  = "RazorfenKraul",
+    [10] = "TheRuinsofAhnQiraj",
+    [11] = "TheTempleofAhnQiraj",
+    [12] = "WailingCaverns",
+    [13] = "ZulFarrak",
+}
+local CFM_EK_MAP = {
+    [1]  = "BlackrockDepths",
+    [2]  = "BlackwingLair",
+    [3]  = "TheDeadmines",
+    [4]  = "Gnomeregan",
+    [5]  = "BlackrockSpireLower",
+    [6]  = "MoltenCore",
+    [7]  = "Naxxramas",
+    [8]  = "ScarletMonasteryArmory",
+    [9]  = "ScarletMonasteryCathedral",
+    [10] = "ScarletMonasteryGraveyard",
+    [11] = "ScarletMonasteryLibrary",
+    [12] = "Scholomance",
+    [13] = "ShadowfangKeep",
+    [14] = "TheStockade",
+    [15] = "Stratholme",
+    [16] = "TheSunkenTemple",
+    [17] = "Uldaman",
+    [18] = "BlackrockSpireUpper",
+    [19] = "ZulGurub",
+}
+
+local CFM_CONTINENT_ID_MAP = { CFM_KALIMDOR_MAP, CFM_EK_MAP }
+
+local CFM_WORLD_BOSS_BOSS_ID = {
+    ["Azuregos"]    = "WBAzuregos",
+    ["Lord Kazzak"] = "WBLordKazzak",
+}
+
+local CFM_WORLD_BOSS_KEY = {
+    ["Azuregos"]    = "Azuregos",
+    ["Lord Kazzak"] = "LordKazzak",
+}
+
+local CFM_NIGHTMARE_KEY = "FourDragons"
+
+local function IsCFMBackend()
+    return (AtlasCFM ~= nil) and (AtlasFrame == nil or AtlasFrame == AtlasCFMFrame)
+end
+
+-- Unified accessors -------------------------------------------------
+local function GetAtlasFrame()
+    if IsCFMBackend() then return AtlasCFMFrame end
+    return AtlasFrame
+end
+local function GetAtlasOptions()
+    if IsCFMBackend() then return AtlasCFMOptions end
+    return AtlasOptions
+end
+local function GetAtlasDropDowns()
+    if IsCFMBackend() then return AtlasCFM and AtlasCFM.DropDowns end
+    return ATLAS_DROPDOWNS
+end
+local function DoAtlasRefresh()
+    if IsCFMBackend() then
+        if AtlasCFM and AtlasCFM.Refresh then AtlasCFM.Refresh() end
+    else
+        if Atlas_Refresh then Atlas_Refresh() end
+    end
+end
+local function DoAtlasToggle()
+    if IsCFMBackend() then
+        if AtlasCFM and AtlasCFM.ToggleAtlas then AtlasCFM.ToggleAtlas() end
+    else
+        if Atlas_Toggle then Atlas_Toggle() end
+    end
+end
+local function DoAtlasPopulateDropdowns()
+    if IsCFMBackend() then
+        if AtlasCFM and AtlasCFM.PopulateDropdowns then AtlasCFM.PopulateDropdowns() end
+    else
+        if Atlas_PopulateDropdowns then Atlas_PopulateDropdowns() end
+    end
+end
+
+-- ============================================================
 -- Atlas sort-mode compatibility
 -- ============================================================
 
@@ -231,11 +324,15 @@ local mmmAtlasZone = nil
 
 local function ParkAtlasOnZone(zoneID)
     if not zoneID then return false end
-    for t, zones in pairs(ATLAS_DROPDOWNS) do
+    local opts = GetAtlasOptions()
+    if not opts then return false end
+    local dropDowns = GetAtlasDropDowns()
+    if not dropDowns then return false end
+    for t, zones in pairs(dropDowns) do
         for z, id in pairs(zones) do
             if id == zoneID then
-                AtlasOptions.AtlasType = t
-                AtlasOptions.AtlasZone = z
+                opts.AtlasType = t
+                opts.AtlasZone = z
                 return true
             end
         end
@@ -244,133 +341,281 @@ local function ParkAtlasOnZone(zoneID)
 end
 
 local function WithContinentSort(callback)
-    if not AtlasOptions then
+    local opts = GetAtlasOptions()
+    if not opts then
         callback()
         return
     end
 
-    local savedSortBy = AtlasOptions.AtlasSortBy
+    local savedSortBy = opts.AtlasSortBy
     local needsSwitch = savedSortBy and savedSortBy ~= 1
 
     if needsSwitch then
-        local savedType = AtlasOptions.AtlasType
-        local savedZone = AtlasOptions.AtlasZone
+        local savedType = opts.AtlasType
+        local savedZone = opts.AtlasZone
 
-        AtlasOptions.AtlasSortBy = 1
-        Atlas_PopulateDropdowns()
+        opts.AtlasSortBy = 1
+        DoAtlasPopulateDropdowns()
 
         callback()
 
-        local openedZoneID = ATLAS_DROPDOWNS[AtlasOptions.AtlasType]
-                         and ATLAS_DROPDOWNS[AtlasOptions.AtlasType][AtlasOptions.AtlasZone]
+        local dropDowns = GetAtlasDropDowns()
+        local openedZoneID = dropDowns and dropDowns[opts.AtlasType]
+                         and dropDowns[opts.AtlasType][opts.AtlasZone]
 
-        AtlasOptions.AtlasSortBy = savedSortBy
-        Atlas_PopulateDropdowns()
+        opts.AtlasSortBy = savedSortBy
+        DoAtlasPopulateDropdowns()
 
         if not ParkAtlasOnZone(openedZoneID) then
-            AtlasOptions.AtlasType = savedType
-            AtlasOptions.AtlasZone = savedZone
+            opts.AtlasType = savedType
+            opts.AtlasZone = savedZone
         end
     else
         callback()
     end
+end
+
+local function CFM_FindDropDownIndices(zoneKey)
+    if not (AtlasCFM and AtlasCFM.DropDowns) then return nil, nil end
+    for t, zones in pairs(AtlasCFM.DropDowns) do
+        for z, id in pairs(zones) do
+            if id == zoneKey then
+                return t, z
+            end
+        end
+    end
+    return nil, nil
+end
+
+local function CFM_OpenMap(zoneKey)
+    local t, z = CFM_FindDropDownIndices(zoneKey)
+    if not t then return false end
+    local opts = AtlasCFMOptions
+    local savedAutoSelect = opts.AtlasAutoSelect
+    opts.AtlasAutoSelect = false
+    AtlasCFM.SkipRestore = true
+    opts.AtlasType = t
+    opts.AtlasZone = z
+    AtlasCFM.Refresh()
+    AtlasCFMFrame:SetFrameStrata("FULLSCREEN")
+    AtlasCFMFrame:Show()
+    if AtlasCFMLootItemsFrame then
+        AtlasCFMLootItemsFrame.StoredElement = nil
+        AtlasCFMLootItemsFrame.StoredMenu    = nil
+        AtlasCFMLootItemsFrame.activeElement = nil
+        AtlasCFMLootItemsFrame:Hide()
+        if AtlasCFM.LootBrowserUI and AtlasCFM.LootBrowserUI.ScrollBarUpdate then
+            AtlasCFM.LootBrowserUI.ScrollBarUpdate()
+        end
+    end
+    opts.AtlasAutoSelect = savedAutoSelect
+    mmmZoneID = zoneKey
+    return true
 end
 
 local atlasToggleHooked = false
 local function HookAtlasToggle()
     if atlasToggleHooked then return end
-    if not Atlas_Toggle then return end
     atlasToggleHooked = true
 
-    local original_Atlas_Toggle = Atlas_Toggle
-    Atlas_Toggle = function()
-        local willShow = not AtlasFrame:IsVisible()
-        if willShow
-            and mmmAtlasType
-            and AtlasOptions
-            and AtlasOptions.AtlasSortBy ~= 1
-        then
-            local savedType = mmmAtlasType
-            local savedZone = mmmAtlasZone
-            WithContinentSort(function()
-                AtlasOptions.AtlasType = savedType
-                AtlasOptions.AtlasZone = savedZone
-                original_Atlas_Toggle()
-            end)
-        else
-            original_Atlas_Toggle()
+    if IsCFMBackend() then
+        if not (AtlasCFM and AtlasCFM.Refresh and AtlasCFM.ToggleAtlas) then return end
+
+        local original_Refresh = AtlasCFM.Refresh
+        AtlasCFM.Refresh = function()
+            original_Refresh()
+            if mmmZoneID and AtlasCFMOptions and AtlasCFM.DropDowns then
+                local currentKey = AtlasCFM.DropDowns[AtlasCFMOptions.AtlasType]
+                                and AtlasCFM.DropDowns[AtlasCFMOptions.AtlasType][AtlasCFMOptions.AtlasZone]
+                if currentKey ~= mmmZoneID then
+                    mmmZoneID = nil
+                end
+            end
         end
-    end
 
-    local original_Type_OnClick = AtlasFrameDropDownType_OnClick
-    AtlasFrameDropDownType_OnClick = function()
-        mmmZoneID  = nil
-        mmmAtlasType = nil
-        mmmAtlasZone = nil
-        original_Type_OnClick()
-    end
+        local original_Toggle = AtlasCFM.ToggleAtlas
+        AtlasCFM.ToggleAtlas = function()
+            local frame = AtlasCFMFrame
+            local willShow = frame and not frame:IsVisible()
+            if willShow and mmmZoneID then
+                CFM_OpenMap(mmmZoneID)
+            else
+                original_Toggle()
+            end
+        end
+        if Atlas_Toggle == original_Toggle then
+            Atlas_Toggle = AtlasCFM.ToggleAtlas
+        end
+    else
+        if not Atlas_Toggle then return end
+        local original_Atlas_Toggle = Atlas_Toggle
+        Atlas_Toggle = function()
+            local willShow = not AtlasFrame:IsVisible()
+            if willShow
+                and mmmAtlasType
+                and AtlasOptions
+                and AtlasOptions.AtlasSortBy ~= 1
+            then
+                local savedType = mmmAtlasType
+                local savedZone = mmmAtlasZone
+                WithContinentSort(function()
+                    AtlasOptions.AtlasType = savedType
+                    AtlasOptions.AtlasZone = savedZone
+                    original_Atlas_Toggle()
+                end)
+            else
+                original_Atlas_Toggle()
+            end
+        end
 
-    local original_Zone_OnClick = AtlasFrameDropDown_OnClick
-    AtlasFrameDropDown_OnClick = function()
-        mmmZoneID  = nil
-        mmmAtlasType = nil
-        mmmAtlasZone = nil
-        original_Zone_OnClick()
+        local original_Type_OnClick = AtlasFrameDropDownType_OnClick
+        AtlasFrameDropDownType_OnClick = function()
+            mmmZoneID    = nil
+            mmmAtlasType = nil
+            mmmAtlasZone = nil
+            original_Type_OnClick()
+        end
+
+        local original_Zone_OnClick = AtlasFrameDropDown_OnClick
+        AtlasFrameDropDown_OnClick = function()
+            mmmZoneID    = nil
+            mmmAtlasType = nil
+            mmmAtlasZone = nil
+            original_Zone_OnClick()
+        end
     end
 end
 
 local function OnWorldBossClick()
-    if not AtlasLoot_ShowBossLoot or not AtlasFrame or not Atlas_Refresh then
-        DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000AtlasLoot not loaded.|r")
-        return
-    end
     local bossName    = this.markerName
-    local dataID      = WORLD_BOSS_MAP[bossName]
-    local atlasIndex  = ATLAS_OUTDOOR_INDEX[bossName]
     local displayName = bossName
-    if this.isEmeraldDragon then
-        dataID, displayName = GetRandomNightmareDragon()
-        atlasIndex = 2
-    end
-    if dataID and atlasIndex then
+
+    if IsCFMBackend() then
+        if not (AtlasCFM and AtlasCFM.Refresh and AtlasCFMFrame and AtlasCFMOptions) then
+            DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000Atlas-CFM not loaded.|r")
+            return
+        end
+        local zoneKey
+        local cfmBossID
+        if this.isEmeraldDragon then
+            zoneKey = CFM_NIGHTMARE_KEY
+            local dragonKey, dragonName = GetRandomNightmareDragon()
+            local cfmDragonIDs = {
+                DLethon  = "WBLethon",
+                DEmeriss = "WBEmeriss",
+                DTaerar  = "WBTaerar",
+                DYsondre = "WBYsondre",
+            }
+            cfmBossID = cfmDragonIDs[dragonKey]
+        else
+            zoneKey  = CFM_WORLD_BOSS_KEY[bossName]
+            cfmBossID = CFM_WORLD_BOSS_BOSS_ID[bossName]
+        end
+        if not zoneKey then
+            DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000No Atlas data found for \"" .. bossName .. "\".|r")
+            return
+        end
         PlaySoundFile(SOUND_CLICK)
         if WorldMapFrame:IsVisible() and IsWorldMapFullscreen() then
             HideUIPanel(WorldMapFrame)
         end
-        WithContinentSort(function()
-            if AtlasFrame and AtlasOptions then
-                AtlasOptions.AtlasType = 3
-                AtlasOptions.AtlasZone = atlasIndex
-                local savedAutoSelect = AtlasOptions.AtlasAutoSelect
-                AtlasOptions.AtlasAutoSelect = false
-                Atlas_Refresh()
-                AtlasFrame:SetFrameStrata("FULLSCREEN")
-                AtlasFrame:Show()
-                AtlasOptions.AtlasAutoSelect = savedAutoSelect
-                mmmAtlasType = 3
-                mmmAtlasZone = atlasIndex
-                mmmZoneID = ATLAS_DROPDOWNS[3] and ATLAS_DROPDOWNS[3][atlasIndex]
-            end
-        end)
-        local delayFrame = CreateFrame("Frame")
-        delayFrame.timer = 0
-        delayFrame:SetScript("OnUpdate", function()
-            this.timer = this.timer + arg1
-            if this.timer >= 0.1 then
-                this:SetScript("OnUpdate", nil)
-                local ok = pcall(AtlasLoot_ShowBossLoot, dataID, displayName, AtlasFrame)
-                if not ok then
-                    DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000Error loading AtlasLoot data.|r")
+        if not CFM_OpenMap(zoneKey) then
+            DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000Atlas-CFM map not found for \"" .. bossName .. "\".|r")
+            return
+        end
+        if cfmBossID and AtlasCFM.ScrollList then
+            local zoneID = AtlasCFM.DropDowns
+                       and AtlasCFM.DropDowns[AtlasCFMOptions.AtlasType]
+                       and AtlasCFM.DropDowns[AtlasCFMOptions.AtlasType][AtlasCFMOptions.AtlasZone]
+            for i = 1, table.getn(AtlasCFM.ScrollList) do
+                local entry = AtlasCFM.ScrollList[i]
+                if entry and entry.id == cfmBossID then
+                    local lootTable = AtlasCFM.DataResolver.GetLootByElemName(entry.name, zoneID)
+                    if lootTable then
+                        AtlasCFMLootItemsFrame.StoredElement = entry.name
+                        AtlasCFMLootItemsFrame.StoredMenu    = zoneID
+                        AtlasCFMLootItemsFrame.activeElement = i
+                        AtlasCFMLootItemsFrame:Show()
+                        AtlasCFM.LootBrowserUI.ShowScrollBarLoading()
+                        AtlasCFM.LootCache.CacheAllItems(lootTable, function()
+                            AtlasCFM.LootBrowserUI.HideScrollBarLoading()
+                            AtlasCFM.LootBrowserUI.ScrollBarLootUpdate()
+                        end)
+                        AtlasCFM.LootBrowserUI.ScrollBarUpdate()
+                    end
+                    break
                 end
             end
-        end)
+        end
     else
-        DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000No Atlas data found for \"" .. bossName .. "\".|r")
+        if not AtlasLoot_ShowBossLoot or not AtlasFrame or not Atlas_Refresh then
+            DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000AtlasLoot not loaded.|r")
+            return
+        end
+        local dataID     = WORLD_BOSS_MAP[bossName]
+        local atlasIndex = ATLAS_OUTDOOR_INDEX[bossName]
+        if this.isEmeraldDragon then
+            dataID, displayName = GetRandomNightmareDragon()
+            atlasIndex = 2
+        end
+        if dataID and atlasIndex then
+            PlaySoundFile(SOUND_CLICK)
+            if WorldMapFrame:IsVisible() and IsWorldMapFullscreen() then
+                HideUIPanel(WorldMapFrame)
+            end
+            WithContinentSort(function()
+                if AtlasFrame and AtlasOptions then
+                    AtlasOptions.AtlasType = 3
+                    AtlasOptions.AtlasZone = atlasIndex
+                    local savedAutoSelect = AtlasOptions.AtlasAutoSelect
+                    AtlasOptions.AtlasAutoSelect = false
+                    Atlas_Refresh()
+                    AtlasFrame:SetFrameStrata("FULLSCREEN")
+                    AtlasFrame:Show()
+                    AtlasOptions.AtlasAutoSelect = savedAutoSelect
+                    mmmAtlasType = 3
+                    mmmAtlasZone = atlasIndex
+                    mmmZoneID = ATLAS_DROPDOWNS[3] and ATLAS_DROPDOWNS[3][atlasIndex]
+                end
+            end)
+            local delayFrame = CreateFrame("Frame")
+            delayFrame.timer = 0
+            delayFrame:SetScript("OnUpdate", function()
+                this.timer = this.timer + arg1
+                if this.timer >= 0.1 then
+                    this:SetScript("OnUpdate", nil)
+                    local ok = pcall(AtlasLoot_ShowBossLoot, dataID, displayName, AtlasFrame)
+                    if not ok then
+                        DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000Error loading AtlasLoot data.|r")
+                    end
+                end
+            end)
+        else
+            DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000No Atlas data found for \"" .. bossName .. "\".|r")
+        end
     end
 end
 
 local function OnAtlasClick()
-    if this.atlasID and AtlasFrame and AtlasOptions then
+    if not this.atlasID then return end
+
+    if IsCFMBackend() then
+        if not (AtlasCFM and AtlasCFM.Refresh and AtlasCFMFrame and AtlasCFMOptions) then return end
+        PlaySoundFile(SOUND_CLICK)
+        if WorldMapFrame:IsVisible() and IsWorldMapFullscreen() then
+            HideUIPanel(WorldMapFrame)
+        end
+        local continentMap = CFM_CONTINENT_ID_MAP[GetCurrentMapContinent()]
+        local zoneKey = continentMap and continentMap[this.atlasID]
+        if not zoneKey then
+            DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000Atlas-CFM: no map for this marker.|r")
+            return
+        end
+        if not CFM_OpenMap(zoneKey) then
+            DEFAULT_CHAT_FRAME:AddMessage("|cFFFF0000Atlas-CFM map not found for this marker.|r")
+        end
+    else
+        if not (AtlasFrame and AtlasOptions) then return end
         PlaySoundFile(SOUND_CLICK)
         if WorldMapFrame:IsVisible() and IsWorldMapFullscreen() then
             HideUIPanel(WorldMapFrame)
@@ -751,6 +996,7 @@ end
 -- ============================================================
 
 local function PrimeAtlasSilently()
+    if IsCFMBackend() then return end
     if not Atlas_Refresh or not AtlasOptions then return end
     WithContinentSort(function()
         AtlasOptions.AtlasType = 1
