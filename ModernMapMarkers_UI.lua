@@ -642,6 +642,7 @@ end
 -- isShaguMap, isPfUIMapOn, and isCartographer read saved variables /
 -- addon state so are set at VARIABLES_LOADED.
 local pfDrop
+local pfLevelDrop
 local isShaguMap
 local isPfUIMapOn
 local isCartographer
@@ -678,6 +679,7 @@ end
 
 local function ResolveCompatState()
     pfDrop         = getglobal("pfQuestMapDropdown")
+    pfLevelDrop    = pfDrop and getglobal("pfQuestMapLevelDropdown")
     local stKey    = ShaguTweaks and ShaguTweaks.T and ShaguTweaks.T["WorldMap Window"]
     isShaguMap     = stKey and ShaguTweaks_config and ShaguTweaks_config[stKey] == 1
     isPfUIMapOn    = isPfUI and not (pfUI_config and pfUI_config["disabled"] and pfUI_config["disabled"]["map"] == "1")
@@ -688,7 +690,9 @@ end
 local function PositionDropdowns()
     if not MMMFilterDropdown then return end
     MMMFilterDropdown:ClearAllPoints()
-    if pfDrop then
+    if pfLevelDrop then
+        MMMFilterDropdown:SetPoint("TOPRIGHT", pfLevelDrop, "BOTTOMRIGHT")
+    elseif pfDrop then
         MMMFilterDropdown:SetPoint("TOPRIGHT", pfDrop, "BOTTOMRIGHT", 0, 0)
     elseif isCartographer then
         MMMFilterDropdown:SetPoint("TOPRIGHT", WorldMapDetailFrame, "TOPRIGHT", CART_OFFSET_X, CART_OFFSET_Y)
